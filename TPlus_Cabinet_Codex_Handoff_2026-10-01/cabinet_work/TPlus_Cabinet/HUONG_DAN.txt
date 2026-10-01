@@ -1,0 +1,117 @@
+T+ CABINET 4.3.0-beta.6 — DỰNG HÌNH TRONG SKETCHUP
+
+Bản chạy thử phát triển từ T+ Cabinet 4.2.4, hướng tới SketchUp Desktop 2022/2024.
+
+CÁNH KÍNH KHUNG KIM LOẠI
+- Cánh tủ > Cấu tạo cánh > Kiểu dựng > Kính khung kim loại. Chỉnh trong mục Khung/kính.
+- Mặc định bản khung 20 mm, dày khung 20 mm, kính 5 mm. Nút bản 20/30/40 và ô nhập tự do.
+- Kích thước cánh dùng khe cánh hiện có. Kính lọt trong khung và nằm giữa chiều dày khung.
+- Cánh gồm 2 group vật liệu: Khung Kim Loại và Kính. Khung là 4 thanh hộp đơn giản; không rãnh, gioăng, nẹp hoặc liên kết góc.
+- Khung: Đen / Champagne / Inox. Kính: Trong / Trà / Xám. Đây là màu và độ trong suốt của SketchUp, không phải shader vật lý của phần mềm render.
+- Có thể sửa vật liệu T+ Khung / T+ Kính trong Materials; cập nhật tủ không đặt lại màu swatch đã sửa. Swatch dùng chung tên sẽ ảnh hưởng các đối tượng cùng vật liệu.
+- Dày khung độc lập với dày ván; vẫn giữ chiều sâu tủ phủ bì. Bản khung quá rộng hoặc kính dày hơn khung sẽ báo lỗi.
+- Kiểu này áp dụng chung cho các cánh mở của tủ đang chỉnh, kể cả các module và tầng. Mặt ngăn kéo vẫn là ván. Vát móc tay không áp dụng lên cánh kính.
+- Các tủ đã lưu không có tham số mới sẽ dùng Ván phẳng như trước.
+- Hình học đơn giản để dựng phối cảnh; không phục vụ gia công profile/CNC.
+
+KẾT CẤU CẬP NHẬT (BETA 4)
+- Số cụm: 1 hoặc 2 cụm cạnh nhau trong một khoang tủ. Số tầng mỗi cụm chỉnh riêng.
+- Két âm: diềm mặc định 50 mm, dày theo ván. Khoảng hông bằng bản diềm trừ dày ván.
+- Sâu két là phủ bì; nhập 400 mm với ván 17 mm thì hồi phía sau diềm sâu 383 mm. Giá trị 0 tự lấy chiều sâu còn lại trong tủ.
+- Mặt két âm lùi mặc định 50 mm, có thể chỉnh. Két hai cụm có hồi giữa.
+- Xà đáy trước/sau nằm ngang ở đáy két, bản mặc định 50 mm.
+- Xà đón mặt hộc độc lập: bật/tắt, chỉnh cao và độ hạ so với dưới nóc. Thùng hộc tự giới hạn để tránh xà.
+- Đáy hộc: Âm hai bên (mặc định), Âm bốn phía, Phủ dưới. Hai kiểu âm thể hiện phần ngậm bằng nửa dày vách hộc; chưa khoét rãnh gia công trên hình học vách.
+- Hậu âm: ngậm hồi mặc định bằng nửa chiều dày hồi, tự đổi theo dày ván. Bỏ chọn để nhập riêng; độ ngậm độc lập độ lùi hậu. Chưa dựng rãnh gia công.
+- Tủ hai tầng dùng Xà Dưới mặc định; Xà Trên sửa tấm đáy trên và hướng xà trước/sau theo mẫu tham khảo.
+- Nhóm và vật liệu kính/khung dùng tên ngắn, không kèm hậu tố. Vật liệu cũ được đổi tên khi dùng lại nếu chưa có vật liệu tên mới.
+
+HAI TIỆN ÍCH KHÔI PHỤC (BETA 5)
+- Menu Extensions có T+ Cabinet — Dựng hình và submenu T+ Cabinet — Tiện ích gồm T+_EXPLODE, T+_UNTAG, T+ — Nạp lại mã (Reload). Toolbar giữ 3 biểu tượng như bản 4.2.4.
+- T+_EXPLODE: chọn Group/Component cần xử lý; rã nhóm lồng trung gian, chuyển component thành group tấm độc lập, xóa chi tiết ẩn và chạy bộ dọn hình học FixIt 101 kế thừa.
+- EXPLODE xóa dynamic_attributes và SU_InstanceSet trên instance/definition; giữ thuộc tính TPlus_Cabinet của tủ cha, tên, tag, vị trí và vật liệu. Các từ điển khác trên tủ cha và tấm được giữ khi chuyển thành group.
+- EXPLODE yêu cầu có vùng chọn; bỏ chọn thì chỉ báo hướng dẫn. Mỗi lần chạy là một bước Undo.
+- T+_UNTAG: đưa mọi đối tượng con về Untagged, kể cả group/component lồng và guides; giữ tag của đối tượng cha được chọn. Không xóa tag khỏi danh sách Tags và không xóa thuộc tính.
+- Tủ và component con dùng chung được tách riêng trước khi xử lý; bản copy ngoài vùng chọn không bị đổi theo. Đối tượng khóa hoặc con đang khóa sẽ báo lỗi và hủy thao tác.
+- Sau EXPLODE, group tủ mới được chọn lại để bảng điều khiển nhận đúng tủ. Cập nhật tham số sẽ dựng lại kết cấu và gán tag theo quy tắc T+; các sửa tay bên trong có thể bị thay.
+
+CÀI ĐẶT
+1. Lưu file SketchUp đang làm. Cài RBZ qua Extensions > Extension Manager > Install Extension.
+2. Đóng và mở lại SketchUp để thay mã cũ đã nạp trong bộ nhớ.
+3. Mở Extensions > T+ Cabinet — Dựng hình, hoặc biểu tượng T+ trên toolbar.
+4. Thử trong file mới trước. Gói dùng chung tên bộ nạp tplus_cabinet.rb với bản cũ, thay phiên bản cũ sau khi khởi động lại.
+
+CẬP NHẬT TRỰC TIẾP VÀ RELOAD (BETA 6)
+- Mã nguồn chính nằm ở cabinet_work. Lệnh cabinet_dev/sync_sketchup_2022.ps1 chỉ đồng bộ 15 file T+ Cabinet được liệt kê vào đúng Plugins của SketchUp 2022 trên máy Dừa.
+- Lệnh sync không ghi vào plugin khác hoặc SketchUp 2023/2024. Không xóa file dư. File cũ thay đổi được sao lưu trong outputs/sketchup_2022_backups; sau đồng bộ kiểm tra SHA256.
+- Sau mỗi lần đồng bộ, thoát công cụ đang vẽ rồi chọn Extensions > T+ Cabinet — Tiện ích > T+ — Nạp lại mã (Reload). Reload không ghi hay dựng lại hình trong model; chọn tủ và cập nhật khi muốn nhận kết cấu mới.
+- Reload nạp lại bộ Ruby riêng của T+ Cabinet, đọc HTML mới, gỡ observer của bảng T+ cũ và mở lại bảng nếu bảng đang mở. Menu/toolbar không được tạo lặp. Observer và mã các plugin khác được giữ nguyên.
+- Với SketchUp 2022 đang mở beta 4, kích hoạt lần đầu bằng hai dòng trong Ruby Console:
+  load 'C:/Users/PC/AppData/Roaming/SketchUp/SketchUp 2022/SketchUp/Plugins/TPlus_Cabinet/reload.rb'
+  TPlus_Cabinet.reload_extension
+- Sau lần kích hoạt đầu, chỉ cần bấm menu Reload. Không cần cài RBZ hay đóng/mở SketchUp cho thay đổi Ruby/HTML thông thường.
+- Phiên bản trong tiêu đề bảng T+ phản ánh mã đã Reload. Tên/phiên bản Extension Manager được bộ nạp đăng ký khi mở SketchUp và có thể giữ phiên bản cũ cho đến lần mở SketchUp tiếp theo.
+- Reload kiểm tra cú pháp trước khi đóng bảng. Nếu thiếu file hoặc lỗi cú pháp thì bảng cũ được giữ. Nếu lỗi xảy ra khi thực thi mã mới, xem Ruby Console để sửa mã rồi Reload lại.
+- Đổi entry point, xóa/đổi tên class hoặc thay cấu trúc menu lớn vẫn có thể cần mở lại SketchUp. Không dùng Reload này cho plugin khác.
+
+GIAO DIỆN MENU
+- Menu trái: Tổng thể / Thùng tủ / Chia khoang / Cánh tủ / Ngăn kéo.
+- Thùng tủ: chọn Hông, Nóc–đáy, Hậu hoặc Chân. Chia khoang: Vách đứng, Đợt ngang, Chia tầng.
+- Mỗi lần chỉ hiện một nhóm. Menu không thay đổi thông số; ghi nhớ menu đang dùng.
+- Các nút Đặt tủ mới, Vẽ 3 điểm, Cập nhật luôn nằm ở đáy; chỉ vùng thông số cuộn.
+- Ngăn kéo chia 4 mục: Bố trí / Khung két / Mặt hộc / Thùng hộc.
+- Lưu / xóa mẫu, xà che khe và bước bắt nằm trong mục mở rộng.
+- Mục không liên quan tự ẩn; giá trị được giữ để dùng khi bật lại.
+- Mép móc tay dùng chung cho cánh và mặt hộc: Cánh tủ > Mép móc tay.
+
+SỬ DỤNG
+- Chọn mẫu hoặc nhập W/D/H rồi bấm ĐẶT TỦ MỚI, click vị trí đặt. Esc hủy.
+- Hoặc dùng VẼ 3 ĐIỂM như bản trước. Bước bắt kích thước chỉnh được từ 1–100 mm.
+- Muốn sửa: chọn đúng một group/component tủ T+, nhập thông số rồi bấm CẬP NHẬT TỦ.
+- Tự cập nhật khi gõ mặc định tắt. Có thể bật trong bảng điều khiển.
+- Cập nhật không chọn tủ không tạo thêm hình. Chọn nhiều tủ không áp dụng hàng loạt.
+- Mỗi lần tạo/cập nhật có Undo. Một bản copy tủ được tách riêng trước khi cập nhật.
+- W/D/H là phủ bì, gồm cánh và hậu; chiều cao gồm chân và nẹp tách trần. Mọi số đo mm.
+- Module độc lập: nhập 800;800;800 và W=2400. Mỗi module có hai hồi, cấu hình cánh/đợt/hộc lặp theo từng module.
+- Để trống danh sách module để chia đều theo rộng mục tiêu. Không dùng dấu phẩy để ngăn module; dấu phẩy được hiểu là phần thập phân.
+- Hậu: Âm (có độ lùi), Phủ (tấm ngoài lưng), Không.
+- Vát 45°: tạo hình thật ở mép trên cánh và mặt hộc; thông số mép giữ lại mặc định 2 mm.
+- Có tùy chọn xà chặn sau khe trên cánh. Xà che khe giữa mặt hộc nằm trong phần Ngăn kéo.
+- Khoảng dành cho ray là giá trị dựng hình có thể sửa, không chứng nhận tương thích một mã ray.
+- Hộc âm mặc định lùi mặt 50 mm, diềm rộng 50 mm; ván 20 mm cho hông khung cách hồi 30 mm.
+- Ký hiệu cánh và hộc dùng Construction Guides; có thể xóa bằng Edit > Delete Guides.
+- Tủ cha: T+_CABINET; cánh/mặt hộc: T+_CANH; ký hiệu: T+_KY HIEU; hình học và thùng hộc: Untagged.
+
+PHẠM VI
+Chỉ dựng hình và chỉnh tham số. Không có BOM, nhãn, bản vẽ xuất, nesting, DXF/CNC hay thư viện phụ kiện gia công.
+Đây là dựng lại hình theo tham số: chỉnh sửa tay bên trong tủ (khoét, vật liệu gán từng tấm, thêm hình) có thể bị thay khi cập nhật. Giữ bản copy trước nếu cần lưu phần sửa tay.
+Các lựa chọn bo hồi kế thừa bản trước; phạm vi kiểm tra tập trung tủ ván phẳng.
+Preview 3 điểm minh họa khung; cấu tạo module đầy đủ được dựng sau khi hoàn tất.
+
+KIỂM TRA ĐÃ THỰC HIỆN
+- Cú pháp Ruby bằng Ruby 3.2 WebAssembly.
+- Tiện ích trên fixture API: vùng chọn, rã nhóm lồng, chuyển group, xóa chi tiết ẩn, giữ tham số/tên/tag/vật liệu/vị trí, tách bản copy, UNTAG đệ quy, xử lý đối tượng khóa/lỗi và callback menu/toolbar. Fixture không xác nhận FixIt 101 bằng kernel SketchUp.
+- Reload trên fixture: nâng từ beta 4, tái dùng toolbar, nạp Ruby/HTML mới, không trùng menu/observer, chỉ gỡ observer T+, giữ observer khác, lỗi cú pháp/thiếu file giữ bảng cũ. Chưa xác nhận hot reload trong SketchUp thực tế.
+- Tính toán kích thước/hình học trên lớp mô phỏng API: dày thực 17.5, module hồi đôi, tổng chiều sâu, chia hai tầng, diềm hộc âm, vát, xà chặn và guides.
+- Các đầu vào lỗi: kích thước thiếu, âm, số lượng phân số, tổng module sai, khoang/hộc quá nhỏ.
+- JavaScript/DOM: khởi tạo, luồng tạo/sửa, chặn sửa khi chưa chọn, preset, bảo toàn đầu vào lỗi và ID không trùng.
+- Menu: chỉ hiện một mục, chuyển mục giữ nguyên tham số và không gọi dựng hình; kiểm tra ẩn/hiện theo ngữ cảnh.
+- Đối chiếu dữ liệu gửi sang Ruby với beta.1: toàn bộ ô tham số, mặc định và 7 mẫu tủ giữ nguyên.
+- Chromium: kiểm tra thao tác và ảnh giao diện; thanh nút nằm trong cửa sổ, không cuộn ngang ở vùng hiển thị 560×640 và 480×420.
+- Không có SketchUp trong môi trường kiểm tra này. Chưa chạy trên SketchUp 2022/2024 thực tế; chưa xác nhận native solid/manifold hoặc thao tác Undo trên máy người dùng.
+
+GỢI Ý CHẠY THỬ
+0. Chọn hộc âm, 2 cụm, 2 tầng, sâu két 400, ván 17: kiểm tra 4 mặt hộc, nóc sâu 400, hồi sâu 383. Thử cả ba kiểu đáy và Xà Trên/Xà Dưới.
+1. Tủ rộng 800, dày 17.5: đo đáy lọt lòng rộng 765.
+2. Mẫu ba module 800: tổng 2400, có 6 hồi.
+3. Đổi hậu Âm/Phủ/Không: tổng sâu vẫn theo D.
+4. Tủ cao 2700: kiểm tra hồi chia tầng, xà dưới và vị trí cánh.
+5. Hộc âm ván 20: đo diềm 50 và khoảng hông 30.
+6. Bật vát và xà chặn; kiểm tra mặt cắt trong X-Ray.
+7. Copy tủ rồi sửa một bản; bản còn lại giữ nguyên. Thử Undo, lưu và mở lại file.
+8. Bỏ chọn tủ rồi bấm cập nhật: không tạo thêm hình.
+9. Kiểm tra đủ 3 nút trên toolbar. Copy một tủ, chọn một bản rồi EXPLODE: nhóm lồng rã, từng tấm vẫn riêng, tủ cha còn tên/tag/vật liệu và tham số. Bản copy không đổi. Thử Undo rồi Redo.
+10. Chọn tủ rồi UNTAG: con và guides đều Untagged, tag tủ cha giữ nguyên; bản copy không đổi. Thử Undo. Sau đó cập nhật tủ để kiểm tra các tag T+ được gán lại.
+11. Bỏ chọn rồi chạy hai tiện ích: chỉ báo hướng dẫn. Thử trên một group có đối tượng con khóa: báo lỗi và hoàn tác. Lưu/mở lại file sau EXPLODE rồi chọn group tủ để sửa thông số.
+12. Mở bảng T+, bấm Reload 3 lần: bảng được mở lại, toolbar vẫn 3 nút, menu không tăng thêm. Chọn tủ để kiểm tra chế độ sửa sau Reload. Thử trong từng cửa sổ SketchUp đang mở vì mỗi tiến trình có bộ nhớ Ruby riêng.
+Nếu có lỗi, gửi ảnh kèm thông số mẫu đang dùng và nội dung Window > Ruby Console.

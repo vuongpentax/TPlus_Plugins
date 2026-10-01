@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>T+ Dim · Chuẩn hóa vùng chọn</title>
+  <link rel="stylesheet" href="dialog.css">
+</head>
+<body>
+  <header class="header">
+    <div class="brand"><img src="dim.svg" alt="" width="27" height="27"><span>T+ DIM <small>1.1 · beta 2</small></span></div>
+    <button id="theme" class="btn-icon" title="Đổi giao diện sáng/tối">Tối</button>
+  </header>
+  <div class="context-bar"><span id="selection_mode">Chọn dim trong model</span><button id="refresh" class="btn-secondary">Lấy vùng chọn</button></div>
+  <div class="workspace">
+    <nav class="side-menu" aria-label="Thông số dim">
+      <button class="menu-button" data-page="dimension" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 4v16M20 4v16M4 15h16M2 18l5-6M17 18l5-6"/></svg><span>Đường dim</span></button>
+      <button class="menu-button" data-page="text"><svg viewBox="0 0 24 24"><path d="M4 5h16M12 5v15M8 20h8M4 5v3M20 5v3"/></svg><span>Chữ & font</span></button>
+      <button class="menu-button" data-page="units"><svg viewBox="0 0 24 24"><path d="M3 7h18v10H3zM7 7v5M11 7v3M15 7v5M19 7v3"/></svg><span>Quy chuẩn file</span></button>
+      <button class="menu-button" data-page="cleanup"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 4h6M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg><span>Dọn Dim/Text</span></button><div class="menu-note">CHUẨN HÓA<br><span>SketchUp 2022+</span></div>
+    </nav>
+    <main id="settings_content">
+      <section data-panel="dimension">
+        <h2>Đường dim</h2><p class="intro">Đồng bộ các dim đã có trong vùng chọn.</p>
+        <div class="sample" aria-label="Mẫu kiểu dim"><svg viewBox="0 0 300 92" role="img"><title>Mẫu đường dim, không phải kích thước trong model</title><path class="sample-object" d="M38 75V60h224v15"/><g id="sample-lines"><path d="M38 66V20M262 66V20M38 35h85M177 35h85"/><g id="sample-arrows"></g></g><text id="sample-label" x="150" y="40" text-anchor="middle">800</text></svg><span>Mẫu kiểu dim</span></div>
+        <div class="card">
+          <h3>Phạm vi & diện mạo</h3>
+          <label class="checkbox-row"><input id="include_dim" type="checkbox" checked><span>Chuẩn hóa Dimension</span></label>
+          <label class="checkbox-row"><input id="include_text" type="checkbox" checked><span>Chuẩn hóa Text ghi chú</span></label>
+          <div class="form-group"><label class="check-label" for="change_color"><input id="change_color" type="checkbox" checked> Đổi màu dim</label><div class="color-field"><span id="dim_hex">#0000FF</span><input id="dim_color" type="color" value="#0000FF" aria-label="Màu dim"></div></div>
+          <div class="form-group"><label for="arrow">Đầu đường dim</label><select id="arrow"><option value="keep">Giữ nguyên</option><option value="slash">Gạch chéo /</option><option value="closed">Mũi tên kín</option><option value="open">Mũi tên mở</option><option value="dot" selected>Chấm tròn</option><option value="none">Không có</option></select></div>
+        </div>
+        <div class="card">
+          <h3>Khoảng cách</h3>
+          <label class="checkbox-row" for="change_offset"><input id="change_offset" type="checkbox"><span>Đổi khoảng cách từ vật thể đến dim</span></label>
+          <div class="form-group"><label for="offset_mm">Khoảng cách</label><div class="suffix-field"><input id="offset_mm" type="number" value="100" min="0.1" max="1000000" step="1" disabled><span>mm</span></div></div>
+          <p class="hint">Áp dụng cho dim thẳng, giữ phía đặt dim hiện tại.</p>
+        </div>
+        <div class="scope-box">
+          <label class="checkbox-row" for="deep"><input id="deep" type="checkbox" checked><span>Bao gồm dim trong Group / Component được chọn</span></label>
+          <p id="scope_note">Nhóm dùng chung được tách riêng khi cập nhật để giữ đúng phạm vi vùng chọn.</p>
+        </div>
+      </section>
+      <section data-panel="text" hidden>
+        <h2>Chữ & font</h2><p class="intro">Cách hiển thị chữ và ghi chú của bản vẽ.</p>
+        <div class="card"><h3>Font & size — chung cho Dim + Text</h3>
+          <label class="checkbox-row"><input id="custom_dim" type="checkbox" checked><span>Dùng dim riêng T+ với bộ font đi kèm</span></label>
+          <label class="checkbox-row"><input id="change_font" type="checkbox" checked><span>Áp dụng font cho Text có đường dẫn</span></label>
+          <div class="form-group"><label for="font">Font</label><select id="font"><option>UTM Avo</option><option>Roboto</option><option>Roboto Condensed</option></select></div>
+          <div class="form-group"><label for="size_pt">Cỡ chữ</label><div class="suffix-field"><input id="size_pt" type="number" min="1" max="1000" step="0.5" value="10"><span>pt</span></div></div>
+          <label class="checkbox-row"><input id="font_bold" type="checkbox"><span>Đậm</span></label>
+          <label class="checkbox-row"><input id="font_italic" type="checkbox"><span>Nghiêng</span></label>
+          <div id="font_preview">Kích thước tủ · 800 mm</div>
+          <p class="hint" id="size_hint">10 pt = 3,53 mm trong model.</p>
+          <p class="hint">Dim T+ dùng chữ phẳng theo mặt phẳng bản vẽ. Dim gốc giữ ẩn để cập nhật số đo. Text cố định trên màn hình giữ dạng native; SU 2022–2026.1 chỉnh font loại này trong Model Info.</p>
+          <button id="dim_info" class="btn-secondary">Font Dim native ↗</button>
+          <button id="text_info" class="btn-secondary">Font Text màn hình ↗</button>
+        </div>
+        <div class="card"><h3>Chữ trên đường dim</h3>
+          <div class="form-group"><label for="alignment">Hướng chữ</label><select id="alignment"><option value="keep">Giữ nguyên</option><option value="aligned" selected>Theo đường dim</option><option value="screen">Theo màn hình</option></select></div>
+          <div class="form-group"><label for="position">Vị trí chữ</label><select id="position"><option value="keep">Giữ nguyên</option><option value="above" selected>Phía trên</option><option value="center">Giữa đường dim</option><option value="outside">Bên ngoài</option></select></div>
+          <p class="hint">Vị trí chữ áp dụng cho dim thẳng có chữ theo đường dim.</p>
+          <label class="checkbox-row" for="reset_text"><input id="reset_text" type="checkbox"><span>Trả chữ dim về giá trị đo thực</span></label>
+          <p class="hint">Bật để xóa số hoặc nội dung đã nhập đè lên dim.</p>
+        </div>
+        <div class="card"><h3>Text ghi chú</h3>
+          <div class="form-group"><label for="text_color">Màu Text</label><div class="color-field"><span id="text_hex">#0000FF</span><input id="text_color" type="color" value="#0000FF"></div></div>
+          <div class="form-group"><label for="text_arrow">Đầu đường dẫn</label><select id="text_arrow"><option value="keep">Giữ nguyên</option><option value="dot" selected>Chấm tròn</option><option value="none">Không có</option><option value="slash">Gạch chéo /</option><option value="closed">Mũi tên kín</option><option value="open">Mũi tên mở</option></select></div>
+        </div>
+      </section>
+      <section data-panel="units" hidden>
+        <h2>Quy chuẩn file</h2><p class="intro">Dùng lại quy chuẩn khi dim thủ công trong model này.</p>
+        <div class="card"><h3>Lưu & tự áp dụng</h3>
+          <label class="checkbox-row"><input id="save_profile" type="checkbox" checked><span>Lưu quy chuẩn vào model khi Áp dụng</span></label>
+          <label class="checkbox-row"><input id="auto_new" type="checkbox" checked><span>Tự chuẩn hóa Dim/Text được tạo sau đó</span></label>
+          <label class="checkbox-row"><input id="assign_tags" type="checkbox" checked><span>Gom vào tag T+_DIM và T+_TEXT</span></label>
+          <p id="profile_status">Chưa lưu quy chuẩn vào model này.</p>
+          <p class="hint">Bấm Áp dụng rồi Ctrl+S để lưu vào SKP. Có thể lưu quy chuẩn khi chưa chọn đối tượng. Bỏ “Tự chuẩn hóa” rồi Áp dụng để tắt cho file.</p>
+        </div>
+        <div class="card"><h3>Đơn vị model</h3>
+          <label class="checkbox-row" for="change_units"><input id="change_units" type="checkbox"><span>Đổi đơn vị cho toàn model</span></label>
+          <fieldset id="unit_fields" disabled>
+            <div class="form-group"><label for="unit">Đơn vị chiều dài</label><select id="unit"><option value="mm">Millimeter (mm)</option><option value="cm">Centimeter (cm)</option><option value="m">Meter (m)</option><option value="inch">Inch</option><option value="ft">Feet</option></select></div>
+            <div class="form-group"><label for="precision">Độ chính xác</label><select id="precision"><option value="0">0</option><option value="1">0.0</option><option value="2">0.00</option><option value="3">0.000</option><option value="4">0.0000</option></select></div>
+            <label class="checkbox-row" for="show_unit"><input id="show_unit" type="checkbox" checked><span>Hiện ký hiệu đơn vị</span></label>
+          </fieldset>
+        </div>
+        <div class="scope-box"><p>SketchUp dùng đơn vị chung cho model. Khi bật mục này, dim ngoài vùng chọn cũng dùng định dạng mới. Kích thước hình học không đổi.</p></div>
+      </section>
+      <section data-panel="cleanup" hidden>
+        <h2>Dọn Dim / Text</h2><p class="intro">Quét chọn đối tượng hoặc Group/Component rồi chọn loại cần xóa.</p>
+        <div class="card"><h3>Xóa trong vùng chọn</h3>
+          <p id="delete_summary">Chưa có vùng chọn.</p>
+          <p>Bao gồm đối tượng ẩn, tag ẩn và mọi cấp nhóm lồng nhau. Bỏ qua nhóm khóa. Component dùng chung được tách riêng cho phần đã chọn.</p>
+          <div class="delete-actions"><button data-delete="dimensions" class="btn-secondary">Xóa Dim</button><button data-delete="texts" class="btn-secondary">Xóa Text</button><button data-delete="both" class="btn-danger">Xóa cả hai</button></div>
+          <div id="delete_confirm" hidden><p id="delete_question"></p><button id="delete_cancel" class="btn-secondary">Hủy</button><button id="delete_commit" class="btn-danger">Xác nhận xóa</button></div>
+          <p class="hint">Xóa cả nguồn đo ẩn và hình dim T+ tương ứng. Hình học khác được giữ lại. Có thể Undo.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <footer class="fixed-actions">
+    <div id="model_status" role="status" aria-live="polite">Quét chọn dim hoặc nhóm chứa dim trong SketchUp.</div>
+    <div class="action-bar"><button id="close" class="btn-secondary">Đóng</button><button id="apply" class="btn-update" disabled>ÁP DỤNG QUY CHUẨN</button></div>
+  </footer>
+  <script src="dialog.js"></script>
+</body>
+</html>

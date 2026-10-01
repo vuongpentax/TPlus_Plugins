@@ -1,0 +1,10 @@
+{
+  "name": "tplus-cabinet-verification",
+  "private": true,
+  "version": "4.3.0-beta.6",
+  "devDependencies": {
+    "@ruby/3.2-wasm-wasi": "2.10.1",
+    "@ruby/wasm-wasi": "2.10.1",
+    "jsdom": "26.1.0"
+  }
+}

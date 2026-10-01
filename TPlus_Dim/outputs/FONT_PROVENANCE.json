@@ -1,0 +1,110 @@
+[
+  {
+    "file": "UTM-Avo.ttf",
+    "family": "UTM Avo",
+    "glyphs": 246,
+    "source": "C:\\Windows\\Fonts\\UTM-Avo.ttf",
+    "sha256": "7b277458036e6680e115ee58317da527ed2319b1d2c65d7a71c01b320a2bbadc",
+    "copyright": "Thiet ke boi Michael Dinh Kien - \"In God We Trust - Free for everyone\" Email: fontchudepc@gmail.com; www.fontchudep.com",
+    "license": null
+  },
+  {
+    "file": "UTM-Avobold.ttf",
+    "family": "UTM Avo",
+    "glyphs": 246,
+    "source": "C:\\Windows\\Fonts\\UTM-Avobold.ttf",
+    "sha256": "e43f88561ceb65fb298094c9ee36b8063c05ff0e7b61599ffc301a2042881583",
+    "copyright": "Thiet ke boi Michael Dinh Kien - \"In God We Trust - Free for everyone\" Email: fontchudepc@gmail.com; www.fontchudep.com",
+    "license": null
+  },
+  {
+    "file": "UTM-Avoitalic.ttf",
+    "family": "UTM Avo",
+    "glyphs": 246,
+    "source": "C:\\Windows\\Fonts\\UTM-Avoitalic.ttf",
+    "sha256": "751208bdc42e7935ce16ff025e947040f40fb23ed0394f124ad615ee82f6a7d5",
+    "copyright": "Thiet ke boi Michael Dinh Kien - \"In God We Trust - Free for everyone\" Email: fontchudepc@gmail.com; www.fontchudep.com",
+    "license": null
+  },
+  {
+    "file": "UTM-Avobold-Italic.ttf",
+    "family": "UTM Avo",
+    "glyphs": 246,
+    "source": "C:\\Windows\\Fonts\\UTM-Avobold-Italic.ttf",
+    "sha256": "90c62d972586381590de253f4ff7b618ea7808a80605a00a1e394b6b586ab3ed",
+    "copyright": "Thiet ke boi Michael Dinh Kien - \"In God We Trust - Free for everyone\" Email: fontchudepc@gmail.com; www.fontchudep.com",
+    "license": null
+  },
+  {
+    "file": "Roboto-Regular.ttf",
+    "family": "Roboto",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\Roboto-Regular.ttf",
+    "sha256": "9e79eaebefe9cb1188defba9413ad6d383cff1f0b4334f0b878634648fb70322",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "Roboto-Bold.ttf",
+    "family": "Roboto",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\Roboto-Bold.ttf",
+    "sha256": "a073f449858a3f0389b2378c8a7c6011bc37065c9147e661b33bbe8180a53150",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "Roboto-Italic.ttf",
+    "family": "Roboto",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\Roboto-Italic.ttf",
+    "sha256": "e9752dfd8f46cad1e80888c169fe58cd0cc34edcd21524902939402abe5e0e57",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "Roboto-BoldItalic.ttf",
+    "family": "Roboto",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\Roboto-BoldItalic.ttf",
+    "sha256": "cea5a021aa2abe724eb88abd9b3cfe063f25acb2ae7917c6be9d3896aaf88830",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "RobotoCondensed-Regular.ttf",
+    "family": "Roboto Condensed",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\RobotoCondensed-Regular.ttf",
+    "sha256": "077394de64ad30e64be10ed6464a7c281427dec2c22e3080043f78c221333bfe",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "RobotoCondensed-Bold.ttf",
+    "family": "Roboto Condensed",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\RobotoCondensed-Bold.ttf",
+    "sha256": "32e42d57a7a9e62dd943722d5ece99af4736fbd11a9927cf07378299c117d3bd",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "RobotoCondensed-Italic.ttf",
+    "family": "Roboto Condensed",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\RobotoCondensed-Italic.ttf",
+    "sha256": "776bfb34e9311c23dcb64137ea81ff49056b13cce7212e4f71870ebe01653e4e",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  },
+  {
+    "file": "RobotoCondensed-BoldItalic.ttf",
+    "family": "Roboto Condensed",
+    "glyphs": 893,
+    "source": "C:\\Windows\\Fonts\\RobotoCondensed-BoldItalic.ttf",
+    "sha256": "914a53960e2b6ee4427d591e441c471d08299b7e36558fb163a94d488eb98138",
+    "copyright": "Copyright 2011 Google Inc. All Rights Reserved.",
+    "license": null
+  }
+]

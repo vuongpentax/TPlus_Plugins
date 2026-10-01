@@ -1,0 +1,23 @@
+# Dependencies and caches
+.pnpm-store/
+node_modules/
+__pycache__/
+*.py[cod]
+/TPlus_Dim/dev/vendor/
+
+# Local logs and temporary files
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Local secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Machine-specific installation reports and SketchUp backups
+/TPlus_Dim/outputs/install_*/
+/TPlus_Cabinet_Codex_Handoff_2026-10-01/outputs/sketchup_2022_backups/

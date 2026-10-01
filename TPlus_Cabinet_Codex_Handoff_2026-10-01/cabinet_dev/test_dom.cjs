@@ -1,0 +1,56 @@
+const fs=require('fs');
+const {JSDOM,VirtualConsole}=require('jsdom');
+const defaults=JSON.parse(fs.readFileSync('cabinet_dev/defaults.json'));
+const presets=JSON.parse(fs.readFileSync('cabinet_dev/presets.json'));
+let html=fs.readFileSync('cabinet_work/TPlus_Cabinet/TPlus_Cabinet_UI.html','utf8');
+for(const [key,data] of [['presets_json',presets],['default_json',defaults],['initial_json',defaults]])html=html.replace('#{'+key+'}',()=>JSON.stringify(JSON.stringify(data)).replace(/</g,'\\u003c'));
+let errors=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+const dom=new JSDOM(html,{runScripts:'dangerously',url:'https://tplus.test',virtualConsole:vc,beforeParse(w){w.calls=[];w.sketchup=new Proxy({},{get:(_,k)=>(data)=>w.calls.push({action:k,data})});}});
+const w=dom.window,d=w.document;
+const assert=(x,m)=>{if(!x)throw Error(m)};
+setTimeout(()=>{
+try{
+assert(d.getElementById('btn_update').disabled,'Update enabled without selection');
+const initialPayload=JSON.stringify(w.getFormData());
+const initialCalls=w.calls.length;
+for(const page of ['general','frame','compartments','doors','drawers']){
+  d.querySelector('[data-page="'+page+'"]').click();
+  assert([...d.querySelectorAll('.menu-page')].filter(p=>!p.hidden).length===1,'Menu must show exactly one page');
+  assert(!d.getElementById('page_'+page).hidden,'Wrong menu page');
+}
+w.selectSubpage('frame','back');
+assert(!d.getElementById('sub_frame_back').hidden&&d.getElementById('sub_frame_sides').hidden,'Frame submenus');
+assert(JSON.stringify(w.getFormData())===initialPayload&&w.calls.length===initialCalls,'Navigation changed model or parameters');
+const change=(id,value)=>{const e=d.getElementById(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new w.Event('change',{bubbles:true}));};
+change('door_style','Kính khung kim loại');
+assert(!d.getElementById('sub_doors_glass').hidden,'Glass settings not opened');
+let metal=w.getFormData();assert(metal.metal_frame_width===20&&metal.metal_frame_depth===20&&metal.glass_thickness===5,'Concept defaults');
+change('metal_frame_width','37');change('metal_finish','Champagne');change('glass_finish','Trà');
+metal=w.getFormData();assert(metal.metal_frame_width===37&&metal.metal_finish==='Champagne'&&metal.glass_finish==='Trà','Concept payload');
+change('door_style','Ván phẳng');assert(d.getElementById('sub_doors_glass').hidden,'Glass panel must hide for wooden doors');
+change('back_mode','Không');assert(d.getElementById('t_back').closest('.form-group').hidden,'No back hides thickness');
+change('back_mode','Phủ');assert(!d.getElementById('t_back').closest('.form-group').hidden&&d.getElementById('back_recess').closest('.form-group').hidden,'Overlay back conditions');
+change('module_mode','Độc lập');change('module_widths','800;800');assert(d.getElementById('module_target_w').closest('.form-group').hidden,'Explicit module list');
+change('opt_door','Không Cánh');assert(d.getElementById('door_fields').hidden,'No door conditions');
+change('front_bevel',true);assert(!d.getElementById('bevel_lip').closest('.form-group').hidden,'Bevel conditions');
+change('opt_drawer','Âm');assert(!d.getElementById('drawer_fields').hidden,'Drawer conditions');
+change('opt_drawer','Không');assert(d.getElementById('drawer_fields').hidden,'No drawers');
+w.updateFormFromRuby(defaults);
+assert(!d.getElementById('door_fields').hidden,'Preset refresh conditions');
+assert(d.getElementById('btn_update').closest('footer')&&d.getElementById('btn_place').closest('footer'),'Actions must stay in footer');
+assert(d.getElementById('selection_mode').textContent==='Tạo tủ mới','Create mode label');
+w.updateCabinet(true);assert(!w.calls.some(c=>c.action==='update_cabinet'),'No-selection update');
+w.placeCabinet();assert(w.calls.at(-1).action==='create_cabinet','Create route');
+w.updateFormFromRuby({...defaults,__target_pid:'42'});
+assert(d.getElementById('selection_mode').textContent==='Đang sửa tủ đã chọn','Edit mode label');
+d.getElementById('w').value='900';w.updateCabinet(true);
+let c=w.calls.at(-1);assert(c.action==='update_cabinet'&&c.data.__target_pid==='42'&&c.data.w===900,'Targeted update');
+w.setSelectedCabinet(null);d.getElementById('preset_select').value='Tủ áo 3 module độc lập';w.loadPreset();
+c=w.getFormData();assert(c.module_mode==='Độc lập'&&c.module_widths==='800;800;800','Module preset');
+d.getElementById('drawer_count').value='1.5';d.getElementById('t').value='';c=w.getFormData();
+assert(c.drawer_count===1.5&&c.t===null,'Silent numeric coercion');
+const ids=[...d.querySelectorAll('[id]')].map(e=>e.id);assert(ids.length===new Set(ids).size,'Duplicate IDs');
+assert(!errors.length,errors.join('\n'));
+console.log('PASS DOM: menus, submenus, navigation preserves parameters, conditional fields, mode labels, footer actions, startup, create, selected update, presets, invalid inputs, IDs, no JS errors');
+}catch(e){console.error(e);process.exitCode=1}finally{w.close();}
+},650);

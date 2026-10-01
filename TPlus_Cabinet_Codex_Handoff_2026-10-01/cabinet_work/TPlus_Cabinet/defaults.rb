@@ -1,0 +1,28 @@
+# frozen_string_literal: true
+module TPlus_Cabinet
+  def self.default_params
+      {
+        "back_groove_auto" => true, "back_groove_depth" => 8.75,
+        "drawer_columns" => 1, "drawer_frame_depth" => 0.0, "drawer_frame_rail_width" => 50.0,
+        "drawer_frame_stop_rail" => true, "drawer_frame_stop_rail_h" => 50.0, "drawer_frame_stop_rail_drop" => 0.0,
+        "drawer_bottom_mode" => "Âm hai bên",
+        "door_style" => "Ván phẳng", "metal_frame_width" => 20.0, "metal_frame_depth" => 20.0,
+        "glass_thickness" => 5.0, "metal_finish" => "Đen", "glass_finish" => "Trong",
+        "back_mode" => "Âm", "module_mode" => "Chung vách", "module_widths" => "", "module_target_w" => 800.0,
+        "front_bevel" => false, "bevel_lip" => 2.0, "snap_step" => 50.0,
+        "door_stop_rail" => false, "door_stop_rail_h" => 60.0,
+        "w" => 800.0, "d" => 600.0, "h" => 2400.0,
+        "t" => 17.5, "t_back" => 6.0, "back_recess" => 20.0,
+        "opt_top" => "Đỉnh Lọt Hồi", "opt_bottom" => "Đáy Lọt Hồi",
+        "opt_left_side" => "Vuông", "opt_right_side" => "Vuông", "curve_w" => 100.0,
+        "plinth_h" => 40.0, "shadow_gap_h" => 25.0, "div_count" => 0, "div_pos" => "Chia Đều", "auto_divider_wide" => true, "max_compartment_w" => 900.0,
+        "shelf_count" => 0, "shelf_count_top" => 0, "shelf_type" => "Cố Định", "shelf_side_clearance" => 1.6, "shelf_front_setback" => 25.0, "shelf_depth_clearance" => 6.4,
+        "opt_door" => "Cánh Lọt Hồi", "door_count" => 2, "auto_door_count" => true, "max_door_w" => 450.0, "door_gap" => 2.0, "door_top_gap" => 25.0,
+        "door_gap_advanced" => false, "door_gap_outer" => 1.0, "door_gap_left" => 1.0, "door_gap_right" => 1.0, "door_gap_top" => 25.0, "door_gap_bottom" => 1.0, "door_gap_between" => 2.0,
+        "opt_drawer" => "Không", "is_full_drawer" => false, "drawer_comp_pos" => "Tất Cả", "drawer_h" => 600.0, "drawer_count" => 2, "drawer_inner_offset" => 50.0, "drawer_hinge_sp" => 50.0, "drawer_gap" => 2.0, "drawer_ray_space" => 13.0, "drawer_back_clearance" => 20.0, "drawer_box_bottom_lift" => 10.0, "drawer_box_top_clearance" => 13.0, "drawer_bottom_offset" => 10.0, "drawer_box_t" => 0.0, "drawer_bottom_t" => 6.0, "drawer_backing_rail" => false, "drawer_backing_rail_h" => 60.0,
+        "drawer_gap_advanced" => false, "drawer_gap_outer" => 1.0, "drawer_gap_left" => 1.0, "drawer_gap_right" => 1.0, "drawer_gap_top" => 25.0, "drawer_gap_bottom" => 1.0, "drawer_gap_between" => 2.0,
+        "is_overheight" => false, "auto_overheight" => true, "max_panel_h" => 2400.0, "h_bottom" => 2100.0, "h_top" => 275.0, "overheight_join" => "Xà Dưới", "beam_h" => 50.0, "mid_door_gap" => 25.0
+      }
+    end
+
+end

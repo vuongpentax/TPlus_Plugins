@@ -1,0 +1,347 @@
+{
+  "created": "2026-10-01",
+  "project": "T+ Cabinet",
+  "version": "4.3.0-beta.4",
+  "files": [
+    {
+      "path": "CODEX_HANDOFF.md",
+      "bytes": 9396,
+      "sha256": "4f5b4ebf78915469aa24c09b29d8787a8b72420e40b3a446a06c34c78828dd9c"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 601,
+      "sha256": "5dcba933cd0e473a6d99b19c9284ac0d21c9dfba56ca9a803e5e5c2750840a9c"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/HUONG_DAN.txt",
+      "bytes": 8733,
+      "sha256": "cfd3f61bbcb9903382f1c9d2f3c6b48e8f44e47726fff264402c141b70f47642"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/TPlus_Cabinet_UI.html",
+      "bytes": 77411,
+      "sha256": "0274992b7bde19258b257c319a902c6d2fc46e38081c2290e301daf721044a82"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/combine.svg",
+      "bytes": 627,
+      "sha256": "f5ac1e996d724f2e5fabcfe246ae441efca7bc1e97f8024c625375153ad365f0"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/defaults.rb",
+      "bytes": 2723,
+      "sha256": "b6ffac7e986a4f06b16e170d20ed62f80d708b306282c8e45c0c7d282f573e60"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/draw_tool.rb",
+      "bytes": 18633,
+      "sha256": "758a65f195df155a288f84d03fe14107ab8f3ebc75a76f9214b307cee7f9144b"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/geometry_engine.rb",
+      "bytes": 78976,
+      "sha256": "1d8ffe5e622766b2cd26ccdeccbca04a344708b2ef4153690d7226fa49d01b54"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/logo.svg",
+      "bytes": 647,
+      "sha256": "cf56f8b0ea0b4a0e68776947f59e795bf40830cb8e54fc82bcba3dfdc1a261de"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/main.rb",
+      "bytes": 26183,
+      "sha256": "aa03927a2fe9fbef01a24378059e481dc2198f84a08ef86919f788e530acba53"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/main43.rb",
+      "bytes": 11212,
+      "sha256": "5771fce8575e855cf4e883d90f4d76743629d1d1facfb23efdee6a985be9a02f"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/modeling.rb",
+      "bytes": 5089,
+      "sha256": "8da342bf2ec5a1f9f13566c0979d350a1fe5f86afe97537441a6eaa9b78aa2c0"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/modeling_rules.rb",
+      "bytes": 11051,
+      "sha256": "1343114ad03327a241fccca551cb37e14ed8fa5018b43d24da962ece2ce1acdb"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/ui_renderer.rb",
+      "bytes": 756,
+      "sha256": "658022d8a1e84a6f18d6ff639130ba5682f060bfd4ee63d8292f556f8ccf1a7b"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/untag.svg",
+      "bytes": 469,
+      "sha256": "4fdca0f994edcce642a2b02380259a08629c2a5bbd9542cc087935b2e68861a0"
+    },
+    {
+      "path": "cabinet_work/TPlus_Cabinet/utilities.rb",
+      "bytes": 15429,
+      "sha256": "cc761c6e9d77f062eee28918890caa1441809f1b164cf061a419478eb0dba599"
+    },
+    {
+      "path": "cabinet_work/tplus_cabinet.rb",
+      "bytes": 531,
+      "sha256": "21bfb0dcd05b5c395315e8294f1d19007b2e16cc5608ff12d550594e725b536c"
+    },
+    {
+      "path": "cabinet_dev/build_main.py",
+      "bytes": 691,
+      "sha256": "c229307b304d878b7273b2baf15123d8633370b0811170d05aae0983dc57ce50"
+    },
+    {
+      "path": "cabinet_dev/check_ruby.cjs",
+      "bytes": 1660,
+      "sha256": "be937c38a345b797bf21a34922247b7f2560fc9614afc525376bf69d69b52c45"
+    },
+    {
+      "path": "cabinet_dev/defaults.json",
+      "bytes": 2091,
+      "sha256": "1f7ddaaea5534488220c57a616dc5532db57ad48af73a164f769dfbe88efe00f"
+    },
+    {
+      "path": "cabinet_dev/geometry_beta3.rb",
+      "bytes": 76656,
+      "sha256": "7913fd0be92ae4f1103ef2a6e9ada05a522bc90ff83f5a4a6c92098c0acfc35a"
+    },
+    {
+      "path": "cabinet_dev/geometry_original.rb",
+      "bytes": 75274,
+      "sha256": "d34dedd34517a5959aafd50e0265c333c4d9e4790ae1155a4701a7a02d9a868d"
+    },
+    {
+      "path": "cabinet_dev/main_original.rb",
+      "bytes": 26183,
+      "sha256": "aa03927a2fe9fbef01a24378059e481dc2198f84a08ef86919f788e530acba53"
+    },
+    {
+      "path": "cabinet_dev/menu.css",
+      "bytes": 4449,
+      "sha256": "9e23a1fdc42cdbc2634dff75ae4f0d094c18b526631a232b8c8024db1783333e"
+    },
+    {
+      "path": "cabinet_dev/menu.js",
+      "bytes": 3561,
+      "sha256": "2dacc4a4439c634314d2ae25893bbd3ffd44bd1af74b8c52b9707755394b9627"
+    },
+    {
+      "path": "cabinet_dev/package_menu.py",
+      "bytes": 2253,
+      "sha256": "731efd2f31f910061da32e23e839ebecb577e68e1683528f4220217e1077bdff"
+    },
+    {
+      "path": "cabinet_dev/patch_modeling.py",
+      "bytes": 9398,
+      "sha256": "cc5ef22103bc7382f9283572cfe62674f2a62015fbd6749fc0f66114106a71e7"
+    },
+    {
+      "path": "cabinet_dev/presets.json",
+      "bytes": 14769,
+      "sha256": "9fd811fd814d129b5bc2f35af7dfb52f3e24d92c3acf0590ea91dedbefc9c666"
+    },
+    {
+      "path": "cabinet_dev/preview.html",
+      "bytes": 97375,
+      "sha256": "da620fa6ffe1a86a72b86ef5165d305736d2f8ace3cc911dbdaa9dea0b1c19a1"
+    },
+    {
+      "path": "cabinet_dev/redesign_ui.cjs",
+      "bytes": 13595,
+      "sha256": "423e105707accf6bd129a4d9721df9a510fce077fe22638df4af24740d540870"
+    },
+    {
+      "path": "cabinet_dev/sketchup_stub.rb",
+      "bytes": 3339,
+      "sha256": "6b4806a4ca7c9fe898269a237b8da8e9b89ab1d8ec19df0b7f9530394f674de1"
+    },
+    {
+      "path": "cabinet_dev/test_dom.cjs",
+      "bytes": 5050,
+      "sha256": "8a637ccab24bd2e4e1b2f3f734d8b651d35a038f14b76392dbe91f4fb60fa9ab"
+    },
+    {
+      "path": "cabinet_dev/test_geometry.rb",
+      "bytes": 9720,
+      "sha256": "1147bf6632e9bd7185f364e053d1431262f0f92dd46d0419f665d7cccb6fc9e5"
+    },
+    {
+      "path": "cabinet_dev/test_payload.cjs",
+      "bytes": 1975,
+      "sha256": "7796d88a99cd41b960ecda1c6dcd2245e9215472d85e5be1c7831e2394f06a27"
+    },
+    {
+      "path": "cabinet_dev/test_ui.cjs",
+      "bytes": 5981,
+      "sha256": "572bb8fb2ef0c8cc74a7933aff087c8a14b6d6a21248079991dbb1417fe1da81"
+    },
+    {
+      "path": "cabinet_dev/ui_beta1.html",
+      "bytes": 58723,
+      "sha256": "8ef89aa6866431cb23147f06e37e051d75a335d9ff1a6dd2ab569d2aa3356713"
+    },
+    {
+      "path": "cabinet_dev/ui_beta3.html",
+      "bytes": 74250,
+      "sha256": "f60827a16792ba7217a2713c6afce24a2898c3b87ea908ac1950bbb8db43a989"
+    },
+    {
+      "path": "cabinet_dev/ui_compartments.png",
+      "bytes": 44249,
+      "sha256": "917f1071df9840fba159e5411539fbc64db33b0f55950e6e689959307df2a7d6"
+    },
+    {
+      "path": "cabinet_dev/ui_doors.png",
+      "bytes": 49110,
+      "sha256": "7ed1a73bfaebc61740138c9f4da9aecf9e24f1b811cc1cd1e1cc6589172d33d3"
+    },
+    {
+      "path": "cabinet_dev/ui_drawer_box.png",
+      "bytes": 59228,
+      "sha256": "f21c706a576d85b1228615675c175c62447e662f92dd70bcf2735f2d3ce6640a"
+    },
+    {
+      "path": "cabinet_dev/ui_drawers.png",
+      "bytes": 34598,
+      "sha256": "df159eab7a8b2cad774552ebacd636a63412d5a216f9c688b2f840f00ee49362"
+    },
+    {
+      "path": "cabinet_dev/ui_drawers_active.png",
+      "bytes": 61882,
+      "sha256": "fe6d545941b61004ee7e5c83a3acbb3cb4229e1f5ca2970330431c4dd48a03b3"
+    },
+    {
+      "path": "cabinet_dev/ui_frame.png",
+      "bytes": 35065,
+      "sha256": "590b421180608bcfd905f6e0a673860ce1604983dd05d39259e10c00105aafb3"
+    },
+    {
+      "path": "cabinet_dev/ui_general.png",
+      "bytes": 54033,
+      "sha256": "39f1eaf72c04ec53f83408c37410daef8132de69c24f183f2e06d05c920cbd6a"
+    },
+    {
+      "path": "cabinet_dev/ui_metal_glass.png",
+      "bytes": 54111,
+      "sha256": "00217274fa6217416ceb158ed6e96dd8f56557fd6d4d3cf0e6f332ecc5e3a00d"
+    },
+    {
+      "path": "cabinet_dev/ui_original.html",
+      "bytes": 53906,
+      "sha256": "80ed7a184bae086981a36926861aee0daa139de3ff9769c5a9d35526cedc4cb4"
+    },
+    {
+      "path": "cabinet_dev/ui_small.png",
+      "bytes": 38119,
+      "sha256": "af4123607883b10a8319134039d5328ff314d37ccbdeb5c1f64497eabd3cb9c2"
+    },
+    {
+      "path": "cabinet_dev/upgrade_structure.py",
+      "bytes": 7089,
+      "sha256": "a71d162fcfca6491df0f5223fc036ed84d2d895264cfd736f2da57beba76a346"
+    },
+    {
+      "path": "cabinet_input/TPlus_Cabinet_v4.2.4.rbz",
+      "bytes": 44033,
+      "sha256": "bd8f4a892346a44ff47ff64a9f6671932613a6c3a0c6def7356a9bb0e20e24b3"
+    },
+    {
+      "path": "cabinet_input/TPlus_Cabinet_v4.2.4_RELEASE_NOTES.md",
+      "bytes": 3125,
+      "sha256": "fb25bceab64304f31b1b13f6ea7cee963ad84be58742fb21eefa0fd3b235d255"
+    },
+    {
+      "path": "cabinet_input/TPlus_Cabinet_v4.2.4_RELEASE_NOTES.md.openai-download-95d33a5f12ea492d909648c777b93172",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dc_export_work/tplus_dc_exporter/HUONG_DAN.txt",
+      "bytes": 2787,
+      "sha256": "4bfcd8dc571092375a91de1e5d98519b22ae1e06cc0d85e41c81589fce438eff"
+    },
+    {
+      "path": "dc_export_work/tplus_dc_exporter/main.rb",
+      "bytes": 9654,
+      "sha256": "4c3e5d6442b89005c2b48fafb14b329dc1f0d1d21721e0ddf02429095dd384b0"
+    },
+    {
+      "path": "dc_export_work/tplus_dc_exporter.rb",
+      "bytes": 540,
+      "sha256": "3e9e832c9ae740d9787db9cb91f91447f308dc67c30a33a667df91ae5f6f4f33"
+    },
+    {
+      "path": "dc_export_dev/check.cjs",
+      "bytes": 833,
+      "sha256": "3855e3a8e77de0776acd5a46ff7528e43df9a9bb43c32f95a3bc08488295f7c9"
+    },
+    {
+      "path": "dc_export_dev/test_export.rb",
+      "bytes": 5391,
+      "sha256": "fadba80235f2d740a7cf63a2a175417c2209c787c691601f5f3b63a76acbe50c"
+    },
+    {
+      "path": "upload/01-TPlus_DC_Nhieu_component_20260929_224056.json",
+      "bytes": 451522,
+      "sha256": "f68643f52af7b2b4d4a5a244053285bffe0755f3dd007ee0784cda2b25ae0ac5"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.1.rbz",
+      "bytes": 44051,
+      "sha256": "5bc0cf5dd5453fee6b6d5f96366abea027196217b7ca067ca16000355c197d6a"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.1_source.zip",
+      "bytes": 51922,
+      "sha256": "d8850ed6354a1c91d883de695a1f5c896ef2847803b2c5f96c31bc6041c50ad9"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.2.rbz",
+      "bytes": 47615,
+      "sha256": "1d4062f5b10de1df155ec0f7ddf36163847305af95a1d3cedb02fe8b1bffbf5e"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.2_source.zip",
+      "bytes": 78947,
+      "sha256": "b57da239b2136e29b39f9c4b4a380e4df6bb4d4977507833feed4e126ef2b746"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.3.rbz",
+      "bytes": 49966,
+      "sha256": "f48f41cc35b9429ebb71d33c00a913fd80ac9eefd8d41e0242e9cda920e64f53"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.3_source.zip",
+      "bytes": 83419,
+      "sha256": "8a1270b8ba64a7c9760a38a219d73c7a8060a4456442d5a81887a71129f46546"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.4.rbz",
+      "bytes": 52154,
+      "sha256": "7bc06ef4a104be8c4f49912cc13ee39fbaaf47bdbcb43454a4767c61690543a9"
+    },
+    {
+      "path": "outputs/tplus_cabinet_modeling/TPlus_Cabinet_v4.3.0-beta.4_source.zip",
+      "bytes": 87483,
+      "sha256": "5767d7f6f22b9c35aa6f2cb25cd5fce8cc3ebce1398b3bf4afda95b2316b8b58"
+    },
+    {
+      "path": "outputs/tplus_production_research/TPlus_Bao_cao_nghien_cuu_plugin_san_xuat.docx",
+      "bytes": 53140,
+      "sha256": "875fdb0dfdd9e5d563d9125ee879249271bc8bcf12964571063ce52e0e37558a"
+    },
+    {
+      "path": "outputs/tplus_production_research/TPlus_Bo_tham_so_va_chon_tinh_nang.xlsx",
+      "bytes": 62111,
+      "sha256": "bba821318aad050581640a65fe7fe5b4eb7e9ae3654589ed0a018454b5b7e809"
+    },
+    {
+      "path": "outputs/tplus_production_research/TPlus_Bo_tham_so_va_chon_tinh_nang.xlsx.inspect.ndjson",
+      "bytes": 1801723,
+      "sha256": "f6a5ba90dcc7d57a3964d906e0da8faa22aa875888891456ddede7100bdf728a"
+    }
+  ]
+}

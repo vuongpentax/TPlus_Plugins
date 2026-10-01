@@ -1,0 +1,36 @@
+T+ DC EXPORTER 1.0.0
+
+CÀI VÀ DÙNG
+1. Extensions > Extension Manager > Install Extension: chọn TPlus_DC_Exporter_v1.0.0.rbz.
+2. Chọn component/group tủ ngoài cùng trong mô hình. Có thể chọn nhiều mẫu cùng lúc.
+3. Extensions > T+ DC Exporter — Xuất JSON đối tượng đang chọn.
+4. Chọn nơi lưu JSON. Gửi JSON đó lại trong cuộc trò chuyện, kèm ảnh tổng thể tủ nếu có.
+Nếu chưa thấy menu, khởi động lại SketchUp.
+
+DỮ LIỆU XUẤT
+- Toàn bộ dictionary thuộc tính của instance, definition và đối tượng con; cả metadata và công thức DC lưu sẵn.
+- Tên, tag, tên vật liệu gán trực tiếp, trạng thái ẩn/khóa, phép biến đổi và hộp bao kích thước.
+- Cấu trúc lồng nhau: roots -> definition_ref -> definitions -> children. Definition dùng chung chỉ xuất một lần; mỗi instance giữ tham số riêng.
+- Cả nhóm con đang ẩn/khóa cũng được đọc. Face/edge hoặc entity khác có thuộc tính được lưu trong other_entities_with_attributes.
+- Các bảng công thức dc_formulas là chỉ mục tiện đọc; dữ liệu đầy đủ nằm trong attribute_dictionaries.
+- Thuộc tính số/chuỗi giữ nguyên, không mặc định coi mọi giá trị là mm. Trường kích thước *_mm có đơn vị mm. Ma trận giữ chuẩn SketchUp với phần tịnh tiến bằng inch.
+
+GIỚI HẠN
+- Chỉ đọc: không sửa thuộc tính, không redraw DC, không explode, không đổi lựa chọn, không lưu lại SKP, không gửi mạng.
+- Xuất trạng thái và công thức đang lưu, không chạy thử kết quả khi thay tham số.
+- Không chứa lưới hình học hay ảnh texture. Gửi thêm SKP và ảnh nếu cần đối chiếu chi tiết kết cấu.
+- Tên vật liệu là vật liệu gán trực tiếp trên instance; không phải kết quả kế thừa màu từ các nhóm cha.
+- Đọc bằng API công khai; dữ liệu không được API cung cấp sẽ không thể khôi phục bằng công cụ này.
+- Thiết kế cho SketchUp Desktop 2022/2024, không cần Dynamic Components đang bật để đọc các thuộc tính đã lưu.
+- Đã kiểm tra bằng Ruby và mô phỏng API. Chưa chạy trực tiếp trong SketchUp.
+
+CHẠY FILE RUBY RỜI (TÙY CHỌN)
+Trong Window > Ruby Console, nạp file main.rb từ thư mục mã nguồn:
+load 'C:/ThuMuc/tplus_dc_exporter/main.rb'
+Sau đó dùng menu Extensions hoặc chạy:
+TPlus::DCExporter.export_selected
+
+Nguồn API dùng để đối chiếu:
+https://ruby.sketchup.com/Sketchup/AttributeDictionary.html
+https://ruby.sketchup.com/Sketchup/ComponentInstance.html
+https://ruby.sketchup.com/Sketchup/ComponentDefinition.html
