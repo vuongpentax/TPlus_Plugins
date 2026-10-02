@@ -21,3 +21,8 @@ Thumbs.db
 # Machine-specific installation reports and SketchUp backups
 /TPlus_Dim/outputs/install_*/
 /TPlus_Cabinet_Codex_Handoff_2026-10-01/outputs/sketchup_2022_backups/
+
+# VGD local exports, installation backups and original review snapshot
+/VGD_Scenes/outputs/
+/VGD_Scenes/*_source.zip
+/TPlus_Scenes_Review_2026-10-02/
