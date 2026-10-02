@@ -1,0 +1,8 @@
+outputs/install_*/
+outputs/deploy_fixture_*/
+outputs/preset_fixture_*/
+outputs/publish-worktree/
+cabinet_dev/preview.html
+cabinet_dev/ui_*.png
+cabinet_dev/bootstrap_from_tplus.py
+cabinet_dev/write_deploy.py

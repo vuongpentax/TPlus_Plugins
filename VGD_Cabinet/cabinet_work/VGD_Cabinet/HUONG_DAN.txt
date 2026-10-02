@@ -1,0 +1,37 @@
+VGD_Cabinet 4.4.0-beta.1
+
+Sau khi chuyển từ T+ Cabinet, khởi động lại SketchUp 2022 để nhận module, menu và toolbar VGD. Không đóng model đang làm khi chưa lưu.
+
+MẪU TỦ
+- Chọn mẫu để nạp thông số.
+- Nhập tên và Tạo mới: lưu cấu hình hiện tại thành mẫu mới.
+- Cập nhật mẫu đã chọn: chỉ đổi thông số của đúng mẫu.
+- Đổi tên mẫu: lấy tên trong ô nhập, giữ cấu hình đã lưu.
+- Tên trùng bị chặn. Tên chỉ khác chữ hoa/thường cũng không tạo hai mẫu.
+- File dữ liệu nằm tại %APPDATA%/VGD/SketchUp/VGD_Cabinet/presets_v1.json, kèm backup .bak; ngoài Plugins nên cài lại/Reload không xóa.
+- Mở lần đầu đọc mẫu T+ cũ từ Preferences; các mẫu cũ giữ thông số, tủ mới dùng mặc định mới.
+- Mang file preset sang máy khác nếu muốn dùng chung thư viện mẫu.
+
+MẶC ĐỊNH VGD
+- Nẹp trần 20 mm.
+- Khe cánh đơn giản/chi tiết: 0 mm.
+- Khe biên mặt hộc: 0 mm; giữa các tầng hộc: 25 mm.
+- Khe giữa hai tầng tủ: 25 mm.
+- Móc tay cánh trong Cánh tủ; móc tay hộc trong Ngăn kéo > Mặt hộc. Hai loại độc lập.
+- Xà chặn cánh, xà đón hộc và xà che khe hộc có công tắc/thông số riêng.
+
+CÁNH PANO KHUNG GỖ
+Chọn Cánh tủ > Cấu tạo cánh > Pano khung gỗ, rồi chỉnh trong tab Pano.
+Bản đố/bản thanh ngang 60, dày khung 20, pano 6, rãnh 8, khe co giãn 1 mm mỗi cạnh.
+Có thể đổi số ô từ 1 đến 6 và bản thanh chia giữa.
+Khung và pano dùng vật liệu riêng. Rãnh thẳng có hình học thật; chưa dựng mộng góc hoặc soi profile trang trí.
+Cỡ pano gồm phần ngậm rãnh trừ khe co giãn; khung quá lớn/tấm quá dày sẽ báo lỗi. Chỉnh khe theo vật liệu và độ ẩm, không dùng mặc định như quy chuẩn sản xuất.
+
+TỦ CŨ
+Nhận tủ T+ qua dữ liệu cũ; cập nhật đúng một tủ chọn sẽ ghi dữ liệu VGD.
+Tủ mới/tag mới: VGD_CABINET, VGD_CANH, VGD_KY HIEU.
+Dựng thùng/két/hậu/cánh kính và tiện ích EXPLODE/UNTAG giữ các quy tắc trước đây.
+
+KIỂM TRA TRỰC TIẾP
+Bản này đã qua kiểm thử Ruby WASM/fixture và giao diện; chưa thử native SketchUp.
+Thử trên model copy: lưu mẫu/đổi tên/restart; dựng pano từng kiểu cánh, X-Ray rãnh; đổi móc tay/xà riêng; copy và cập nhật một bản; Undo/Redo; lưu và mở lại SKP.

@@ -1,0 +1,52 @@
+/* Compact menu shell. Only the settings pane scrolls. */
+html,body{height:100%;overflow:hidden}
+body{padding:0;display:flex;flex-direction:column;font-size:12px}
+[hidden]{display:none!important}
+.header{margin:0;border-radius:0;padding:10px 14px;min-height:45px;flex-shrink:0}
+.header small{font-size:10px;font-weight:400;color:#cfb89f;margin-left:8px}
+.context-bar{display:flex;gap:8px;justify-content:space-between;align-items:center;padding:9px 14px;background:var(--bg-main);border-bottom:1px solid var(--border);flex-shrink:0}
+#selection_mode{font-weight:650;color:var(--primary-dark)}
+body.dark #selection_mode{color:var(--primary-light)}
+#size_summary{font-size:11px;color:var(--text-secondary);white-space:nowrap}
+.workspace{display:flex;flex:1;min-height:0;overflow:hidden}
+.side-menu{width:130px;flex-shrink:0;background:var(--bg-main);border-right:1px solid var(--border);padding:12px 7px;display:flex;flex-direction:column;gap:5px;overflow-y:auto}
+.menu-button span{white-space:nowrap}
+.menu-button{width:100%;justify-content:flex-start;gap:8px;padding:10px 8px;height:42px;flex-shrink:0;background:transparent;color:var(--text-secondary);font-size:12px;font-weight:500;border-left:3px solid transparent;border-radius:4px}
+.menu-button svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+.menu-button:hover{background:var(--bg-soft);color:var(--text-main)}
+.menu-button[aria-current="page"]{border-left-color:var(--primary);color:var(--primary-dark);background:#f3ece5;font-weight:700}
+body.dark .menu-button[aria-current="page"]{background:#372c24;color:var(--primary-light)}
+.menu-note{margin-top:auto;padding:20px 10px 0;font-size:9px;line-height:1.8;letter-spacing:.5px;color:var(--text-light)}
+.menu-note span{letter-spacing:0;font-size:10px}
+#settings_content{flex:1;min-width:0;overflow:auto;padding:15px 16px 18px;scrollbar-gutter:stable}
+h2{font-size:17px;font-weight:650;margin:0 0 14px;letter-spacing:-.3px}
+h3{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin:0 0 10px}
+.settings-section{margin:16px 0}
+.form-group{min-height:28px;margin-bottom:8px;gap:8px}
+label{font-size:12px;line-height:1.4}
+input[type="number"],input[type="text"],select{height:28px;font-size:12px;width:112px;max-width:100%}
+select{max-width:160px}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.checkbox-row{margin:9px 0;align-items:flex-start;line-height:1.5}
+.checkbox-row input{margin-top:2px;flex-shrink:0}
+.checkbox-row label{flex:1;font-weight:500}
+.preset-section{margin-bottom:16px;gap:4px}
+#preset_select{max-width:none}
+.preset-row{padding-top:8px;min-width:0;flex-wrap:wrap}.preset-row input{min-width:100%;flex:1 1 100%!important}.preset-row button{width:auto!important;height:auto!important;min-height:28px;font-size:11px}
+.advanced{margin:12px 0;border-top:1px solid var(--border);padding-top:10px}
+.advanced summary{cursor:pointer;font-weight:600;color:var(--text-secondary);font-size:11px;padding:2px 0 8px}
+.advanced[open] summary{color:var(--primary-dark);margin-bottom:4px}
+.preset-section .advanced{margin:0;padding-top:2px;border:0}
+.preset-section summary{font-size:10px;padding-bottom:0}
+.hint,p{font-size:11px!important;line-height:1.5!important;color:var(--text-secondary);margin:10px 0}
+.subnav{display:flex;gap:4px;margin:0 0 18px;padding-bottom:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.subnav button{color:var(--text-secondary);background:var(--bg-main);border:1px solid var(--border);font-weight:500;padding:5px 9px}
+.subnav button[aria-pressed="true"]{background:var(--bg-dark);color:#fff;border-color:var(--bg-dark)}
+.fixed-actions{flex-shrink:0;padding:8px 12px 12px;background:var(--bg-main);border-top:1px solid var(--border)}
+#model_status{line-height:1.45;font-size:11px;max-height:48px;overflow:auto;user-select:text}
+.fixed-actions .checkbox-row{margin:7px 0 9px}.fixed-actions label{font-size:11px;color:var(--text-secondary)}
+.action-bar{margin:0;gap:7px}.action-bar button{flex:1;min-width:0;height:35px;font-size:12px}
+button:disabled{opacity:.38;cursor:not-allowed;box-shadow:none}
+.link-button{font-size:11px;max-width:100%;margin-top:8px}
+.highlight-box{margin-top:12px;padding:10px}
+@media(max-width:500px){.side-menu{width:115px}.menu-button{padding-left:4px;padding-right:4px;gap:5px;font-size:11px}.menu-button svg{width:16px;height:16px}#settings_content{padding:12px}label{font-size:11px}.context-bar{padding:8px 12px}}

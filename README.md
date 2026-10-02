@@ -1,10 +1,11 @@
-# TPlus Plugins
+# VGD Plugins
 
 Kho mã nguồn để tiếp tục phát triển plugin trên nhiều máy.
 
 - `TPlus_Dim/`: mã nguồn, font, công cụ phát triển và gói T+ Dim.
 - `VGD_Scenes/`: plugin VGD Scenes cho SU22, mã nguồn, bộ kiểm tra, hướng dẫn và gói RBZ. Đọc `VGD_Scenes/README.md` và `VGD_Scenes/CODEX_HANDOFF.md` để tiếp tục phát triển.
-- `TPlus_Cabinet_Codex_Handoff_2026-10-01/`: mã nguồn, tài liệu bàn giao, công cụ phát triển và gói T+ Cabinet. Đọc `AGENTS.md` và `CODEX_HANDOFF.md` trước khi sửa.
+- `VGD_Cabinet/`: mã nguồn Cabinet đang phát triển, giao diện VGD, preset lưu trên máy, cánh pano và gói RBZ. Đọc `VGD_Cabinet/AGENTS.md` và `VGD_Cabinet/CODEX_HANDOFF.md` trước khi sửa.
+- `TPlus_Cabinet_Codex_Handoff_2026-10-01/`: bản bàn giao T+ Cabinet cũ và tài liệu DC Export để tham khảo. Phát triển Cabinet tiếp tại `VGD_Cabinet/`.
 
 ## Mở trên máy khác
 

@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-03",
+  "plugin": "VGD_Cabinet",
+  "version": "4.4.0-beta.1",
+  "ruby": "PASS: runtime/loader syntax, existing cabinet/glass/drawer/back/modules/tier geometry, utilities and reload guards",
+  "presets": "PASS: actual Windows host filesystem IO through WASI, T+ migration, create/update/rename/delete, case-folded collision rejection, large library >20KB, new Ruby VM reopening same files, atomic write failure preserves original, backup recovery, malformed legacy raw backup",
+  "locking": "UNVERIFIED native flock: simulated in WASI because flock is unsupported; Windows SketchUp Ruby execution not performed",
+  "defaults": "PASS Ruby and DOM: ceiling strip 20, door gaps 0, drawer-front perimeter gaps 0, drawer/cabinet tier gaps 25",
+  "independent_controls": "PASS: door vs drawer bevel and lip, legacy shared-bevel migration, door stop vs drawer backing rails",
+  "pano": "PASS fixture dimensions: 5 door inset/overlay modes, straight groove cross-sections, separate panels, capture minus per-edge clearance, multiple panels, custom depth, modules and tiers, invalid/tiny geometry rejected",
+  "ui": "PASS: JSDOM and Edge headless, conditional pano/independent handle fields, create/update/rename routes and save confirmation, footer/overflow at 560x640 and 480x420; generated screenshots inspected",
+  "payload": "PASS: existing modeling control IDs and values match beta.1 for complete defaults and 7 built-in presets; additive new fields",
+  "deployment": "PASS isolated APPDATA using real PowerShell installer: exact 17 files, dry-run, byte/hash verification, legacy loader backup/retirement, repeat, foreign-loader guards, other plugin and preset-data preservation",
+  "native": "UNVERIFIED: SketchUp solid/manifold, Undo, actual UI preset save/restart, native file locking and SKP save/reopen. No native execution claim.",
+  "references": [
+    "https://www.cmtorangetools.com/downloads/5790/326/324_the_abc_s_of_panel_door_construction_usa.pdf",
+    "https://www.woodmagazine.com/woodworking-how-to/wood-preparation/dealing-with-wood-movement"
+  ]
+}
