@@ -1,9 +1,9 @@
 'use strict';
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-  const settingsKeys = ['project','template','axis_mode','grouping','isolate','width','height','margin','grid','format','transparent','paper','section_axis','section_percent','section_offset','section_flip','section_name','normal_x','normal_y','normal_z'];
-  const numeric = new Set(['width','height','margin','section_percent','section_offset','normal_x','normal_y','normal_z']);
-  const booleans = new Set(['isolate','transparent','section_flip']);
+  const settingsKeys = ['project','template','axis_mode','grouping','isolate','width','height','margin','grid','format','transparent','paper','section_axis','section_percent','section_offset','section_flip','section_name','normal_x','normal_y','normal_z','ratio_locked','export_scale','date_folder'];
+  const numeric = new Set(['width','height','margin','section_percent','section_offset','normal_x','normal_y','normal_z','export_scale']);
+  const booleans = new Set(['isolate','transparent','section_flip','ratio_locked','date_folder']);
   let context = null, busy = false, selected = new Set(), pendingModal = null, lastPath = null;
   const primaryActions = {views:$('generate'),sections:$('section'),export:$('exportButton')};
   Object.values(primaryActions).forEach(button => $('primarySlot').append(button));
@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.classList.toggle('dark', theme === 'dark');
   function status(message, error = false) { $('status').textContent = message || 'Thao tác không thành công.'; $('status').classList.toggle('error', error); }
   function settings() {
+    applyRatioInput();
     const out = {};
     for (const key of settingsKeys) out[key] = booleans.has(key) ? $(key).checked : numeric.has(key) ? Number($(key).value) : $(key).value;
     out.views = [...document.querySelectorAll('[data-view][aria-pressed=true]')].map(button => button.dataset.view);
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (out.width < 100 || out.height < 100 || out.width > 12000 || out.height > 12000 || out.width*out.height > 64000000) throw Error('Kích thước ảnh: 100–12000 px, tối đa 64 triệu pixel.');
     if (out.margin < 0 || out.margin > 100) throw Error('Lề cần nằm trong 0–100%.');
     if (out.section_percent < 0 || out.section_percent > 100) throw Error('Vị trí cắt cần nằm trong 0–100%.');
+    if (!(out.export_scale > 0)) throw Error('Scale xuất phải lớn hơn 0.');
     return out;
   }
   function enable() {
@@ -70,17 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
     enable();
   }
   function showFormat() { const isPng = $('format').value === 'png'; $('transparent').disabled = !isPng; $('transparentLabel').style.opacity = isPng ? '1' : '.45'; $('alphaHint').hidden = !isPng; $('paperLabel').hidden = $('format').value !== 'pdf'; }
-  function frameStatus(active) { $('toggleGrid').setAttribute('aria-pressed',String(active)); $('toggleGrid').textContent = active ? 'Tắt khung / lưới' : 'Bật khung / lưới'; }
+  function frameStatus(frameActive, gridActive) {
+    $('toggleFrame').setAttribute('aria-pressed',String(frameActive)); $('toggleFrame').textContent = frameActive ? 'Tắt khung' : 'Bật khung';
+    $('toggleGrid').setAttribute('aria-pressed',String(gridActive)); $('toggleGrid').textContent = gridActive ? 'Tắt lưới' : 'Bật lưới';
+  }
+  function lockStatus() {
+    const locked = $('ratio_locked').checked;
+    $('lockRatio').setAttribute('aria-pressed',String(locked));
+    $('lockRatio').textContent = locked ? 'Tỷ lệ đã khóa' : 'Khóa tỷ lệ';
+  }
   window.VGDScenes = { receive(event, data) {
     if (event === 'state' && data && Array.isArray(data.scenes)) {
       const changed = !context || context.model !== data.model;
+      const currentId = value => value && value.scenes.find(scene => scene.selected)?.id;
+      const frameChanged = changed || currentId(context) !== currentId(data);
       if (changed) { selected.clear(); closeModal(); lastPath = null; for (const key of settingsKeys) if (data.settings[key] !== undefined) booleans.has(key) ? $(key).checked = data.settings[key] : $(key).value = data.settings[key]; document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed',String(data.settings.views.includes(button.dataset.view)))); }
       context = data; busy = !!data.busy; selected = new Set([...selected].filter(id => data.scenes.some(scene => scene.id === id)));
+      if (frameChanged && data.current_frame) {
+        ['width','height','margin'].forEach(key => { $(key).value = data.current_frame[key]; });
+      }
+      if (frameChanged) syncRatio();
       $('selection').textContent = data.selection ? data.selection + ' đối tượng đang chọn' + (data.editing ? ' · đang edit group' : '') : 'Chọn Group / Component trong model';
       $('modelTitle').textContent = data.title; $('sceneCount').textContent = String(data.scenes.length);
       $('customNormal').hidden = $('section_axis').value !== 'CUSTOM'; $('sectionSlider').value = $('section_percent').value;
-      frameStatus(!!data.grid_active); showFormat(); render();
-    } else if (event === 'frame' && data) { frameStatus(!!data.active);
+      frameStatus(!!data.frame_active, !!data.grid_active); lockStatus(); showFormat(); render();
+    } else if (event === 'frame' && data) { frameStatus(!!data.frame_active, !!data.grid_active);
     } else if (event === 'result') {
       busy = false; status(data && data.message, !(data && (data.success || data.cancelled)));
       if (data && data.ids) selected = new Set(data.ids);
@@ -101,19 +117,62 @@ document.addEventListener('DOMContentLoaded', () => {
   $('preset4').addEventListener('click', () => preset(['ISO','TOP','FRONT','RIGHT'])); $('preset6').addEventListener('click', () => preset(['ISO','TOP','FRONT','RIGHT','BACK','LEFT'])); $('presetNone').addEventListener('click', () => preset([]));
   $('generate').addEventListener('click', () => runSettings('generate')); $('section').addEventListener('click', () => runSettings('section'));
   ['frame','fit'].forEach(action => $(action).addEventListener('click', () => runSettings(action))); $('toggleGrid').addEventListener('click', () => runSettings('grid'));
+  $('toggleFrame').addEventListener('click', () => runSettings('toggle_frame'));
   $('section_axis').addEventListener('change', () => { $('customNormal').hidden = $('section_axis').value !== 'CUSTOM'; });
   $('sectionSlider').addEventListener('input', () => { $('section_percent').value = $('sectionSlider').value; }); $('section_percent').addEventListener('input', () => { $('sectionSlider').value = $('section_percent').value; });
   $('search').addEventListener('input', render); $('onlyVGD').addEventListener('change', render);
   $('selectAll').addEventListener('click', () => { filtered().forEach(scene => selected.add(scene.id)); render(); }); $('selectNone').addEventListener('click', () => { selected.clear(); render(); });
-  $('update').addEventListener('click', () => modal('Cập nhật từ đối tượng','Căn lại ' + selected.size + ' scene VGD theo hình học và thiết lập nguồn. Bố cục camera chỉnh tay sẽ được thay bằng góc tự động.',() => send('update',{ids:[...selected]})));
+  $('update').addEventListener('click', () => modal('Cập nhật từ đối tượng','Đổi tên và căn lại ' + selected.size + ' scene VGD theo tên, hình học và thiết lập nguồn đã lưu; không cần chọn lại đối tượng. Bố cục camera chỉnh tay sẽ được thay bằng góc tự động.',() => send('update',{ids:[...selected]})));
   $('delete').addEventListener('click', () => modal('Xóa scene đã chọn','Xóa ' + selected.size + ' scene đã đánh dấu? Có thể Undo trong SketchUp.',() => send('delete',{ids:[...selected]})));
   $('goExport').addEventListener('click', () => tab('export')); $('exportButton').addEventListener('click', () => { try { send('export',{ids:[...selected],settings:settings()}); } catch (error) { status(error.message,true); } });
   $('cancel').addEventListener('click', () => send('cancel',{},false)); $('refresh').addEventListener('click', () => send('refresh',{},false));
   $('openFolder').addEventListener('click', () => { if (window.sketchup && lastPath) send('openOutput',{path:lastPath},false); });
   $('format').addEventListener('change',showFormat);
-  const ratios = {'16:9':[1920,1080],'4:3':[1600,1200],'1:1':[1500,1500],'9:16':[1080,1920],'A4_L':[2480,1754],'A4_P':[1754,2480]};
-  $('ratio').addEventListener('change', () => { const pair = ratios[$('ratio').value]; if (pair) { $('width').value=pair[0]; $('height').value=pair[1]; } });
-  ['width','height'].forEach(key => $(key).addEventListener('input', () => { $('ratio').value='CUSTOM'; }));
+  const ratios = {'16:9':[1920,1080],'4:3':[1600,1200],'3:4':[1200,1600],'1:1':[1500,1500],'9:16':[1080,1920],'A4_L':[2480,1754],'A4_P':[1754,2480]};
+  let ratioDirty = false;
+  let lockedAspect = 16/9, lockedRatioText = '16:9';
+  function syncRatio(updateLock = true) {
+    const width = Number($('width').value), height = Number($('height').value);
+    if (!(width > 0 && height > 0)) return;
+    const gcd = (a,b) => b ? gcd(b,a%b) : a;
+    const divisor = gcd(Math.round(width),Math.round(height));
+    $('ratioInput').value = Math.round(width)/divisor + ':' + Math.round(height)/divisor;
+    if (updateLock) { lockedAspect = width/height; lockedRatioText = $('ratioInput').value; }
+    else if ($('ratio_locked').checked) $('ratioInput').value = lockedRatioText;
+    const match = Object.entries(ratios).find(([,pair]) => Math.abs(width/height-pair[0]/pair[1]) < 0.000001);
+    $('ratio').value = match ? match[0] : 'CUSTOM';
+    ratioDirty = false;
+  }
+  function applyRatioInput() {
+    if (!ratioDirty) return;
+    const match = $('ratioInput').value.trim().match(/^(\d+(?:\.\d+)?)\s*[:\/]\s*(\d+(?:\.\d+)?)$/);
+    if (!match || !(Number(match[1]) > 0 && Number(match[2]) > 0)) throw Error('Nhập tỷ lệ rộng:cao hợp lệ, ví dụ 3:4 hoặc 16:9.');
+    const aspect = Number(match[1])/Number(match[2]);
+    const edge = Math.max(Number($('width').value),Number($('height').value)) || 1920;
+    const width = Math.round(aspect >= 1 ? edge : edge*aspect), height = Math.round(aspect >= 1 ? edge/aspect : edge);
+    if (width < 100 || height < 100 || width > 12000 || height > 12000 || width*height > 64000000) throw Error('Tỷ lệ tạo kích thước ngoài 100–12000 px hoặc vượt 64 triệu pixel.');
+    $('width').value = width; $('height').value = height; syncRatio();
+    lockedAspect = aspect; lockedRatioText = match[1]+':'+match[2];
+    if ($('ratio_locked').checked) $('ratioInput').value = lockedRatioText;
+  }
+  $('ratioInput').addEventListener('input', () => { ratioDirty = true; });
+  $('ratioInput').addEventListener('change', () => { try { applyRatioInput(); } catch(error) { status(error.message,true); } });
+  $('ratioInput').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); try { applyRatioInput(); } catch(error) { status(error.message,true); } } });
+  $('ratio').addEventListener('change', () => { const pair = ratios[$('ratio').value]; if (pair) { $('width').value=pair[0]; $('height').value=pair[1]; syncRatio(); } });
+  $('swapRatio').addEventListener('click', () => { try {
+    applyRatioInput(); const aspect = lockedAspect, text = lockedRatioText;
+    const width = $('width').value; $('width').value = $('height').value; $('height').value = width; syncRatio();
+    if ($('ratio_locked').checked) { lockedAspect = 1/aspect; lockedRatioText = text.split(':').reverse().join(':'); $('ratioInput').value = lockedRatioText; }
+    runSettings('preview');
+  } catch(error) { status(error.message,true); } });
+  $('lockRatio').addEventListener('click', () => { try { applyRatioInput(); $('ratio_locked').checked = !$('ratio_locked').checked; syncRatio(); lockStatus(); } catch(error) { status(error.message,true); } });
+  ['width','height'].forEach(key => $(key).addEventListener('input', () => {
+    const value = Number($(key).value);
+    if ($('ratio_locked').checked && Number.isFinite(value) && value > 0) {
+      $(key === 'width' ? 'height' : 'width').value = Math.round(key === 'width' ? value/lockedAspect : value*lockedAspect);
+    }
+    syncRatio(!$('ratio_locked').checked);
+  }));
   $('modalCancel').addEventListener('click',closeModal); $('modalConfirm').addEventListener('click', () => { const action = pendingModal; if (action) action(); closeModal(); });
   document.addEventListener('keydown',event => { if (event.key === 'Escape') closeModal(); if (event.key === 'Enter' && !$('modal').hidden && document.activeElement === $('renameInput')) $('modalConfirm').click(); });
   $('theme').addEventListener('click', () => { document.body.classList.toggle('dark'); try { localStorage.setItem('VGD.Scenes.Theme',document.body.classList.contains('dark')?'dark':'light'); } catch (_) {} });

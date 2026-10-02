@@ -28,6 +28,15 @@ module Geom
     def self.scaling(x,y,z); t=new;t.m[0][0]=x;t.m[1][1]=y;t.m[2][2]=z;t;end
     def *(other); t=self.class.new;4.times { |i| 4.times { |j| t.m[i][j]=(0..3).inject(0.0) { |s,k| s+m[i][k]*other.m[k][j] } } };t;end
     def point(p); Point3d.new(3.times.map { |i| m[i][3]+(0..2).inject(0.0) { |s,j| s+m[i][j]*p.to_a[j] } });end
+    def inverse
+      rows = m.each_with_index.map { |row,i| row.map(&:to_f) + 4.times.map { |j| i==j ? 1.0 : 0.0 } }
+      4.times do |i|
+        pivot=(i...4).max_by { |r| rows[r][i].abs };rows[i],rows[pivot]=rows[pivot],rows[i]
+        scale=rows[i][i];raise 'singular' if scale.abs<1e-12;rows[i].map! { |v| v/scale }
+        4.times { |r| next if r==i;factor=rows[r][i];rows[r]=rows[r].zip(rows[i]).map { |a,b| a-factor*b } }
+      end
+      t=self.class.new;t.m=rows.map { |r| r[4,4] };t
+    end
     def xaxis; Vector3d.new(m[0][0],m[1][0],m[2][0]);end
     def yaxis; Vector3d.new(m[0][1],m[1][1],m[2][1]);end
     def zaxis; Vector3d.new(m[0][2],m[1][2],m[2][2]);end
@@ -60,10 +69,24 @@ module Sketchup
   class Image < Drawingelement;end
   class ComponentInstance < Drawingelement
     attr_accessor :definition,:transformation,:name
-    def initialize(definition,name='Tủ');super();@definition=definition;@transformation=Geom::Transformation.new;@name=name;end
+    def initialize(definition,name='Tủ');super();@definition=definition;definition.instances << self;@transformation=Geom::Transformation.new;@name=name;end
+    def locked?;false;end
+    def make_unique
+      old=definition;old.instances.delete(self)
+      copied=Entities.new
+      old.entities.each do |e|
+        raise 'Fixture supports section planes only for shared leaves' unless e.is_a?(SectionPlane)
+        copy=SectionPlane.new(e.plane);copy.name=e.name;copy.layer=e.layer;copy.hidden=e.hidden
+        copy.instance_variable_set(:@attributes,Marshal.load(Marshal.dump(e.instance_variable_get(:@attributes))))
+        copied << copy;copied.active_section_plane=copy if old.entities.active_section_plane==e
+      end
+      self.definition=Definition.new(old.bounds,copied,old.name);definition.instances << self;self
+    end
   end
   class Group < ComponentInstance;def entities;definition.entities;end;end
-  Definition=Struct.new(:bounds,:entities,:name)
+  Definition=Struct.new(:bounds,:entities,:name) do
+    def instances;@instances ||= [];end
+  end
   class SectionPlane < Drawingelement
     attr_accessor :name,:plane
     def initialize(plane);super();@plane=plane;end
@@ -85,6 +108,7 @@ module Sketchup
       @eye=eye;@target=target;@up=up;@perspective=perspective;@height=80;@fov=35;@aspect_ratio=0.0
     end
     def perspective?;@perspective;end
+    def fov_is_height?;true;end
   end
   class Selection < Array;def add(items);concat(Array(items));end;end
   class Page < Entity
@@ -93,11 +117,17 @@ module Sketchup
     def initialize(model,name);super();@model=model;@name=name;@visibility={};@tag_visibility={};end
     def update(_flags)
       return false if fail
-      @saved={camera:VGD::Scenes.camera_copy(@model.active_view.camera),rendering:@model.rendering_options.dup,plane:@model.entities.active_section_plane}
+      if _flags == PAGE_USE_CAMERA && @saved
+        @saved[:camera]=VGD::Scenes.camera_copy(@model.active_view.camera)
+        return true
+      end
+      sections=VGD::Scenes::SceneStore.entity_contexts(@model).map { |entities| [entities,entities.active_section_plane] }
+      @saved={camera:VGD::Scenes.camera_copy(@model.active_view.camera),rendering:@model.rendering_options.dup,plane:@model.entities.active_section_plane,sections:sections}
       true
     end
     def set_drawingelement_visibility(e,v);@visibility[e]=v;true;end
     def set_visibility(layer,v);@tag_visibility[layer]=v;self;end
+    def camera;@saved ? @saved[:camera] : @model.active_view.camera;end
   end
   class Pages < Array
     attr_reader :selected_page
@@ -108,6 +138,7 @@ module Sketchup
       @selected_page=page
       return unless page && page.saved
       @model.active_view.camera=VGD::Scenes.camera_copy(page.saved[:camera]);@model.rendering_options.replace(page.saved[:rendering]);@model.entities.active_section_plane=page.saved[:plane]
+      page.saved[:sections].each { |entities,plane| entities.active_section_plane=plane }
       page.visibility.each { |e,v| e.hidden=!v if e.valid? }
       page.tag_visibility.each { |layer,v| layer.visible=v }
     end
@@ -119,10 +150,12 @@ module Sketchup
     def invalidate;end
     def refresh;end
     def write_image(opts)
+      @last_written_camera=VGD::Scenes.camera_copy(camera)
       @writes << opts
       return false if @fail_write
       File.binwrite(opts[:filename],"PNG fake #{opts[:width]} #{opts[:height]}");true
     end
+    attr_reader :last_written_camera
   end
   class Style < Entity;end
   Styles=Struct.new(:selected_style,:active_style)
@@ -150,9 +183,13 @@ module UI
   @timers={};@seq=0;@toolbars=[]
   class << self
     attr_reader :toolbars
+    attr_accessor :next_directory,:next_savepanel
+    def select_directory(**_);@next_directory;end
+    def savepanel(*);@next_savepanel;end
     def start_timer(_a,_b,&block);@seq+=1;@timers[@seq]=block;@seq;end
     def stop_timer(id);@timers.delete(id);end
     def drain;1000.times { break if @timers.empty?;key=@timers.keys.first;@timers.delete(key).call };raise 'Timer loop' unless @timers.empty?;end
+    def tick;key=@timers.keys.first;@timers.delete(key).call;end
     def menu(_);self;end
     def add_submenu(_);self;end
     def add_item(*);end
@@ -163,9 +200,9 @@ module UI
     def initialize(*);end
   end
   class Toolbar
-    attr_reader :events
-    def initialize(*);@events=[];UI.toolbars << self;end
-    def add_item(*);@events << :add;end
+    attr_reader :events,:commands
+    def initialize(*);@events=[];@commands=[];UI.toolbars << self;end
+    def add_item(command);@events << :add;@commands << command;end
     def show;@events << :show;end
   end
 end

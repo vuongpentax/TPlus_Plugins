@@ -1,4 +1,4 @@
-# VGD Scenes 1.0.0 — SketchUp 2022
+# VGD Scenes 1.0.4 — SketchUp 2022
 
 Plugin tạo view đối tượng, mặt cắt tùy chỉnh, quản lý scene và xuất ảnh/PDF. Thương hiệu VGD, giao diện sáng/tối dùng bảng màu nâu, trắng và than theo theme T+.
 
@@ -14,11 +14,11 @@ Hãy lưu công việc và khởi động lại SketchUp khi thuận tiện. M�
 
 ## Cách dùng
 
-1. Chọn Group/Component. Trong **Góc nhìn**, chọn view, hệ trục theo đối tượng hoặc thế giới, gộp cụm hoặc từng đối tượng. Bấm **Tạo / Cập nhật góc nhìn**. Có ISO và sáu hướng tiêu chuẩn; lặp lại cùng đối tượng/view sẽ cập nhật scene VGD tương ứng.
-2. Trong **Mặt cắt**, chọn X/Y/Z hoặc vector riêng; đặt vị trí theo phần trăm, dịch thêm bằng mm, đảo hướng và tên mặt cắt. Mỗi tên mặt cắt có scene riêng; chạy lại cùng tên sẽ cập nhật.
-3. Trong **Scene**, bấm tên để mở, đánh dấu scene cần xuất, đổi tên, xóa hoặc lưu view hiện tại. **Cập nhật từ nguồn** tính lại camera/mặt cắt từ đối tượng VGD; **Lưu view** giữ bố cục bạn vừa chỉnh. Xóa/cập nhật có Undo.
-4. Trong **Xuất & Khung**, đặt kích thước ảnh, tỷ lệ và lề. Áp khung hoặc fit đối tượng; bật lưới 1/3, giữa, tỷ lệ vàng hoặc 4×4. Orbit bằng chuột giữa; Esc tắt lưới. Bấm **Lưu view** ở scene sau khi canh camera để lưu bố cục.
-5. Đánh dấu scene và xuất PNG/JPG vào thư mục, hoặc một PDF nhiều trang theo thứ tự scene trong model. Chọn A4/A3 ngang/dọc. File đã có sẽ được thêm số, không ghi đè. Có tiến độ, hủy và báo cáo lỗi xuất ảnh.
+1. Chọn Group/Component. Trong **Góc nhìn**, chọn view, hệ trục theo đối tượng hoặc thế giới, gộp cụm hoặc từng đối tượng. Bấm **Tạo / Cập nhật góc nhìn**. Có ISO và sáu hướng tiêu chuẩn; lặp lại cùng đối tượng/view sẽ cập nhật scene VGD tương ứng và đổi tên tất cả scene VGD của bộ đối tượng đó theo tên mới, kể cả view không đang chọn và scene mặt cắt. Tên theo mẫu đã lưu; tên sửa tay sẽ được tạo lại khi cập nhật.
+2. Trong **Mặt cắt**, chọn X/Y/Z hoặc vector riêng; đặt vị trí theo phần trăm, dịch thêm bằng mm, đảo hướng và tên mặt cắt. Mỗi tên mặt cắt có scene riêng; chạy lại cùng tên sẽ cập nhật. Mặt cắt nằm bên trong từng Group/Component được chọn, không thêm mặt cắt ở cấp model. Component/Group dùng chung sẽ Make Unique bản chọn; với đối tượng nằm trong cha dùng chung, Make Unique cha trước. Camera luôn nhìn từ phía đã bỏ vào phần còn lại, kể cả khi đảo phía cắt.
+3. Trong **Scene**, bấm tên để mở, đánh dấu scene cần xuất, đổi tên, xóa hoặc lưu view hiện tại. **Cập nhật từ đối tượng** tính lại camera/mặt cắt và tên scene từ đối tượng nguồn bằng thông số đã lưu, không cần chọn lại đối tượng; **Lưu view** giữ bố cục bạn vừa chỉnh. Xóa/cập nhật có Undo.
+4. Trong **Xuất & Khung**, chọn preset hoặc nhập tỷ lệ rộng:cao như `3:4`. Nút **⇄** đổi ngang/dọc để xem trước. **Căn lề view hiện tại** chỉ căn và preview, giữ hướng nhìn/phối cảnh; không lưu scene. Bấm **Áp dụng khung** để lưu camera và kích thước riêng vào scene đang mở. **Bật/Tắt khung** đổi giữa khung tỷ lệ và khung nhìn đầy cửa sổ SketchUp; không đổi scene đã lưu. **Bật/Tắt lưới** độc lập, Esc tắt lưới. Sau khi Orbit/canh tay có thể dùng **Lưu view** để chủ động lưu bố cục.
+5. Đánh dấu scene và xuất PNG/JPG vào thư mục, hoặc PDF nhiều trang theo thứ tự scene trong model. Mỗi scene dùng kích thước và bố cục đã lưu riêng (ví dụ TOP 1200×1600, ISO 1920×1080). PDF giữ đúng tỷ lệ từng ảnh trên khổ giấy A4/A3 ngang/dọc đã chọn. Scene cũ chưa lưu kích thước được suy từ khung camera và độ phân giải nguồn/batch. File đã có được thêm số, không ghi đè. Tiến độ và lỗi hiển thị trong dialog; không tạo JSON báo cáo cạnh ảnh.
 
 ## Những điểm cần biết
 
@@ -48,14 +48,14 @@ cd TPlus_Plugins
 
 Kho riêng tư: đăng nhập tài khoản GitHub có quyền truy cập khi Git yêu cầu. Mở thư mục repository trong Codex và yêu cầu tiếp tục `VGD_Scenes`, đọc `CODEX_HANDOFF.md` trước. Nếu đã clone, chạy `git pull --ff-only` khi không có thay đổi chưa lưu.
 
-Để cài trên máy mới, dùng SketchUp **Window → Extension Manager → Install Extension**, chọn `VGD_Scenes/VGD_Scenes_v1.0.0.rbz`. Hoặc chạy script giới hạn phạm vi:
+Để cài trên máy mới, dùng SketchUp **Window → Extension Manager → Install Extension**, chọn `VGD_Scenes/VGD_Scenes_v1.0.4.rbz`. Hoặc chạy script giới hạn phạm vi:
 
 ```powershell
 .\VGD_Scenes\dev\deploy.ps1 -VerifyOnly
 .\VGD_Scenes\dev\deploy.ps1
 ```
 
-Script mặc định dùng APPDATA của tài khoản hiện tại, chỉ cài 11 file VGD. Nếu muốn tắt loader Scenes T+ cũ đã được kiểm tra, thêm `-RetireLegacy`; script từ chối loader khác hash. Không tác động thư mục `tplus` dùng chung.
+Script mặc định dùng APPDATA của tài khoản hiện tại, chỉ cài 12 file VGD. Nếu muốn tắt loader Scenes T+ cũ đã được kiểm tra, thêm `-RetireLegacy`; script từ chối loader khác hash. Không tác động thư mục `tplus` dùng chung.
 
 Kiểm tra mã/giao diện với Node.js 20 trở lên và Google Chrome:
 
@@ -66,3 +66,21 @@ npm test
 ```
 
 Thư viện Node chỉ phục vụ kiểm tra, không cần cho runtime SketchUp. Không đưa `node_modules`, file xuất thử hoặc bản sao cài đặt lên Git. Sau khi sửa và kiểm tra, commit rồi push trước khi chuyển máy.
+
+## Vector XYZ và cập nhật từ đối tượng
+
+Vector XYZ chỉ hướng vuông góc với mặt phẳng cắt trong hệ trục đã chọn ở Góc nhìn. (0,1,0) là Y; (1,1,0) là hướng chéo 45° giữa X/Y. (2,2,0) có cùng hướng (1,1,0), không làm cắt sâu hơn. Không dùng (0,0,0). Vị trí dùng % và dịch thêm mm; đảo phía cắt không đổi vị trí.
+
+Cập nhật từ đối tượng: đánh dấu scene VGD trong danh sách rồi bấm nút. Plugin tìm lại đối tượng nguồn đã ghi bằng persistent paths, đọc hình học/transform/tên hiện tại, căn camera và mặt cắt theo các thông số lưu lúc tạo scene, rồi đổi tên theo mẫu. Nếu đã sửa thông số trên bảng và muốn áp dụng thông số mới, chọn đối tượng và dùng Tạo/Cập nhật tương ứng. Camera canh tay sẽ bị thay khi cập nhật từ đối tượng; dùng Lưu view để giữ bố cục tay.
+
+Mặt cắt cấp model từ 1.0.0 vẫn giữ cho scene cũ. Đánh dấu scene mặt cắt cũ và Cập nhật từ đối tượng để chuyển scene đó sang mặt cắt bên trong đối tượng.
+
+## Tạo nhanh 4 view
+
+Nút toolbar với icon bốn ô tạo/cập nhật ISO, TOP, FRONT, RIGHT từ đối tượng chọn. Nút bảng điều khiển dùng icon riêng như cũ. Bộ 6 view chuẩn vẫn có trong bảng điều khiển nếu chủ động chọn.
+
+## Khóa tỷ lệ, scale và thư mục xuất (1.0.4)
+
+- Bấm Khóa tỷ lệ để giữ tỷ lệ rộng:cao; nhập rộng hoặc cao thì chiều kia tự nhảy theo. Tắt khóa để nhập độc lập. Pixel làm tròn đến số nguyên; tỷ lệ khóa gốc được giữ khi nhập liên tiếp.
+- Scale xuất ảnh chỉ nhân độ phân giải đầu ra của từng scene, không sửa camera/frame trong model. Ví dụ 1920×1080 scale 2 thành 3840×2160; scale 0.5 thành 960×540. Áp dụng PNG/JPG và ảnh đặt trong PDF; khổ giấy PDF giữ nguyên. Cho số dương tùy ý trong giới hạn 1–12000 px mỗi chiều và tối đa 64 triệu pixel sau scale. Kiểm tra toàn bộ scene trước khi xuất.
+- Nơi lưu luôn có thư mục loại PNG/JPG/PDF. Tick Tạo thư mục ngày sẽ dùng ngày địa phương máy lúc bắt đầu xuất, ví dụ thư mục chọn/2026.10.03/PNG. PDF chọn tên ở hộp lưu như trước rồi được đặt trong thư mục PDF tương ứng. Không ghi đè file đã có.

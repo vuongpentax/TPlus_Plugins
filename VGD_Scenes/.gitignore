@@ -1,0 +1,5 @@
+node_modules/
+outputs/
+dev/node_modules/
+__pycache__/
+*.log

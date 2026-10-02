@@ -10,6 +10,7 @@ module VGD
       'axis_mode' => 'local', 'grouping' => 'combined', 'isolate' => true,
       'width' => 1920, 'height' => 1080, 'margin' => 10.0,
       'grid' => 'thirds', 'format' => 'png', 'transparent' => false,
+      'ratio_locked' => false, 'export_scale' => 1.0, 'date_folder' => false,
       'paper' => 'A4_L', 'section_axis' => 'Y', 'section_percent' => 50.0,
       'section_offset' => 0.0, 'section_flip' => false, 'section_name' => 'A-A',
       'normal_x' => 0.0, 'normal_y' => 1.0, 'normal_z' => 0.0
@@ -36,6 +37,8 @@ module VGD
       o['height'] = number(o['height'], 100, 12000, 'Chiều cao ảnh').round
       raise ArgumentError, 'Ảnh quá lớn: tối đa 64 triệu pixel' if o['width'] * o['height'] > 64_000_000
       o['margin'] = number(o['margin'], 0, 100, 'Lề (%)')
+      o['export_scale'] = Float(o['export_scale'])
+      raise ArgumentError, 'Scale xuất phải là số hữu hạn lớn hơn 0.' unless o['export_scale'].finite? && o['export_scale'] > 0
       o['section_percent'] = number(o['section_percent'], 0, 100, 'Vị trí cắt (%)')
       o['section_offset'] = number(o['section_offset'], -1_000_000, 1_000_000, 'Dịch mặt cắt (mm)')
       %w[normal_x normal_y normal_z].each { |key| o[key] = number(o[key], -1_000_000, 1_000_000, 'Vector mặt cắt') }
@@ -47,10 +50,28 @@ module VGD
       raise ArgumentError, 'Loại lưới không hợp lệ' unless %w[none thirds center golden grid4].include?(o['grid'])
       o['views'] = Array(o['views']).uniq
       raise ArgumentError, 'Góc nhìn không hợp lệ' unless (o['views'] - VIEWS).empty?
-      %w[isolate transparent section_flip].each { |key| o[key] = o[key] == true }
+      %w[isolate transparent section_flip ratio_locked date_folder].each { |key| o[key] = o[key] == true }
       %w[project template section_name].each { |key| o[key] = o[key].to_s.strip[0, 160] }
       raise ArgumentError, 'Mẫu tên không được trống' if o['template'].empty?
       o
+    end
+
+    def self.export_dimensions(frame, scale)
+      width = frame['width'] * scale; height = frame['height'] * scale
+      unless width.finite? && height.finite? && width >= 0.5 && height >= 0.5 && width < 12000.5 && height < 12000.5
+        raise ArgumentError, 'Kích thước sau scale phải từ 1–12000 px mỗi chiều.'
+      end
+      width = width.round; height = height.round
+      raise ArgumentError, 'Ảnh sau scale vượt 64 triệu pixel.' if width * height > 64_000_000
+      { 'width' => width, 'height' => height }
+    end
+
+    def self.output_directory(root, opts, date = Time.now)
+      raise ArgumentError, 'Thư mục đích không tồn tại.' unless File.directory?(root)
+      destination = opts['date_folder'] ? File.join(root, date.strftime('%Y.%m.%d')) : root
+      destination = File.join(destination, opts['format'].upcase)
+      FileUtils.mkdir_p(destination)
+      destination
     end
 
     def self.operation(model, label)
@@ -85,12 +106,12 @@ module VGD
 
     def self.camera_copy(camera)
       copy = Sketchup::Camera.new(camera.eye, camera.target, camera.up, camera.perspective?)
+      copy.aspect_ratio = camera.aspect_ratio
       if camera.perspective?
         copy.fov = camera.fov
       else
         copy.height = camera.height
       end
-      copy.aspect_ratio = camera.aspect_ratio
       copy
     end
 

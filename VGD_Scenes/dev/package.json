@@ -1,6 +1,6 @@
 {
   "name": "vgd-scenes-verification",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "private": true,
   "scripts": {
     "test": "node check_ruby.cjs && node test_ui.cjs",

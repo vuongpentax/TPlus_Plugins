@@ -8,13 +8,15 @@ require_relative 'frame'
 require_relative 'export'
 module VGD
   module Scenes
-    VERSION = '1.0.0'.freeze unless const_defined?(:VERSION, false)
+    VERSION = '1.0.4'.freeze unless const_defined?(:VERSION, false)
     class << self
       def state
         model = Sketchup.active_model
         { model: model.object_id.to_s, title: model.title.empty? ? 'Model chưa lưu' : model.title,
           selection: model.selection.count { |e| Geometry.instance?(e) }, editing: !model.active_path.nil?,
-          scenes: SceneStore.list(model), settings: settings(model), grid_active: FrameTool.active?, busy: !@job.nil? }
+          scenes: SceneStore.list(model), settings: settings(model),
+          current_frame: model.pages.selected_page ? SceneFrame.read(model.pages.selected_page, settings(model)) : SceneFrame.from_camera(model.active_view.camera, settings(model)),
+          frame_active: model.active_view.camera.aspect_ratio > 0, grid_active: FrameTool.active?, busy: !@job.nil? }
       end
 
       def send_event(event, data)
@@ -25,7 +27,7 @@ module VGD
       end
 
       def sync_frame
-        send_event('frame', { active: FrameTool.active? })
+        send_event('frame', { frame_active: Sketchup.active_model.active_view.camera.aspect_ratio > 0, grid_active: FrameTool.active? })
       end
 
       def checked_model(data)
@@ -50,14 +52,15 @@ module VGD
                    raise 'Đóng edit Group/Component trước khi mở scene.' if model.active_path
                    model.pages.selected_page = SceneStore.find(model, data['id'])
                    { success: true, message: 'Đã mở scene.' }
-                 when 'frame', 'fit', 'grid'
+                 when 'frame', 'fit', 'preview', 'toggle_frame', 'grid'
                    opts = options(data.fetch('settings'))
                    if action == 'grid'
-                     apply_frame(model, opts)
                      FrameTool.toggle(model, opts)
-                     { success: true, message: FrameTool.active? ? 'Đã bật khung/lưới. Dùng chuột giữa để Orbit; Esc để tắt.' : 'Đã tắt lưới.' }
+                     { success: true, message: FrameTool.active? ? 'Đã bật lưới. Dùng chuột giữa để Orbit; Esc để tắt lưới.' : 'Đã tắt lưới; khung canh view giữ nguyên.' }
+                   elsif action == 'toggle_frame'
+                     toggle_frame(model, opts)
                    else
-                     apply_frame(model, opts, action == 'fit')
+                     apply_frame(model, opts, action == 'fit', action == 'frame')
                    end
                  when 'cancel'
                    @job.cancel if @job
@@ -89,6 +92,11 @@ module VGD
         # Export follows the visible/model scene order, not selection checkbox order.
         pages = model.pages.select { |p| ids.include?(p.persistent_id.to_s) }
         raise ArgumentError, 'Danh sách scene đã thay đổi. Làm mới và chọn lại.' unless pages.length == ids.length
+        pages.each do |page|
+          export_dimensions(SceneFrame.read(page, opts), opts['export_scale'])
+        rescue StandardError => e
+          raise ArgumentError, "#{page.name}: #{e.message}"
+        end
         destination = if opts['format'] == 'pdf'
                         ::UI.savepanel('VGD · Lưu PDF nhiều trang', '', "#{clean_filename(opts['project'].empty? ? 'VGD_Scenes' : opts['project'])}.pdf")
                       else
@@ -98,12 +106,14 @@ module VGD
           send_event('result', { success: false, cancelled: true, message: 'Đã hủy chọn nơi lưu.' })
           return
         end
-        if opts['format'] == 'pdf'
-          destination += '.pdf' unless destination.downcase.end_with?('.pdf')
-          # Keep the user's existing output; create a numbered new file.
-          destination = available_path(File.dirname(destination), File.basename(destination, '.pdf'), 'pdf') if File.exist?(destination)
-        end
         raise ArgumentError, 'Thư mục đích không tồn tại.' unless File.directory?(opts['format'] == 'pdf' ? File.dirname(destination) : destination)
+        if opts['format'] == 'pdf'
+          directory = output_directory(File.dirname(destination), opts)
+          filename = File.basename(destination).sub(/\.pdf\z/i, '')
+          destination = available_path(directory, filename, 'pdf')
+        else
+          destination = output_directory(destination, opts)
+        end
         @job = ExportJob.new(model, pages, opts, destination, lambda do |event, result|
           @job = nil if event == :complete
           @output_folder = opts['format'] == 'pdf' ? File.dirname(result[:path]) : result[:path] if event == :complete && result[:path]
@@ -140,7 +150,7 @@ module VGD
       def quick_views
         raise 'Đang xuất, hãy chờ hoàn tất.' if @job
         model = Sketchup.active_model
-        result = SceneStore.generate(model, settings(model).merge('views' => %w[ISO TOP FRONT RIGHT BACK LEFT]))
+        result = SceneStore.generate(model, settings(model).merge('views' => %w[ISO TOP FRONT RIGHT]))
         send_event('state', state)
         Sketchup.status_text = "[VGD] #{result[:message]}"
       rescue StandardError => e
@@ -151,13 +161,15 @@ module VGD
         return if @initialized
         menu = ::UI.menu('Extensions').add_submenu('VGD Scenes')
         open_command = ::UI::Command.new('VGD Scenes · Bảng điều khiển') { open }
-        quick_command = ::UI::Command.new('VGD · Tạo/cập nhật 6 view đối tượng') { quick_views }
+        quick_command = ::UI::Command.new('VGD · Tạo/cập nhật 4 view nhanh') { quick_views }
         [open_command, quick_command].each do |command|
           command.small_icon = File.join(__dir__, 'icon.svg')
           command.large_icon = File.join(__dir__, 'icon.svg')
         end
+        quick_command.small_icon = File.join(__dir__, 'quick_views.svg')
+        quick_command.large_icon = File.join(__dir__, 'quick_views.svg')
         open_command.tooltip = 'VGD Scenes · Tạo scene, mặt cắt, quản lý và xuất ảnh/PDF'
-        quick_command.tooltip = 'VGD · Tạo/cập nhật ISO, TOP, FRONT, RIGHT, BACK, LEFT từ đối tượng chọn'
+        quick_command.tooltip = 'VGD · 4 view nhanh: ISO, TOP, FRONT, RIGHT từ đối tượng chọn'
         menu.add_item(open_command); menu.add_item(quick_command)
         @toolbar = ::UI::Toolbar.new('VGD Scenes')
         @toolbar.add_item(open_command); @toolbar.add_item(quick_command)

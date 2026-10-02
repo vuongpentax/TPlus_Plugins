@@ -83,38 +83,73 @@ module VGD
         end
       end
 
-      def self.plane_for(model, page)
-        model.entities.find { |e| e.is_a?(Sketchup::SectionPlane) && e.get_attribute(DICT, 'scene_pid').to_s == page.persistent_id.to_s && e.get_attribute(DICT, 'owner') == 'VGD Scenes' }
+      def self.entity_contexts(model)
+        contexts = []; pending = [model.entities]; seen = {}
+        until pending.empty?
+          entities = pending.pop
+          next if seen[entities.object_id]
+          seen[entities.object_id] = true
+          contexts << entities
+          entities.each { |e| pending << e.definition.entities if Geometry.instance?(e) }
+        end
+        contexts
       end
 
-      def self.write(model, page, target, kind, opts)
+      def self.planes_for(model, page)
+        entity_contexts(model).flat_map do |entities|
+          entities.select { |e| e.is_a?(Sketchup::SectionPlane) && e.get_attribute(DICT, 'scene_pid').to_s == page.persistent_id.to_s && e.get_attribute(DICT, 'owner') == 'VGD Scenes' }
+        end
+      end
+
+      def self.rename_from_target(model, page, target, kind, opts, index = nil)
+        index ||= metadata(page)['name_index'] || model.pages.to_a.index(page) + 1
+        label_kind = kind == 'SECTION' ? "SEC_#{opts['section_name']}" : kind
+        page.name = unique_name(model, name(opts, target, label_kind, index), page)
+        index
+      end
+
+      def self.write(model, page, target, kind, opts, index = nil)
+        stored_frame = page.get_attribute(DICT, 'frame')
+        opts = opts.merge(SceneFrame.read(page, opts)) if stored_frame
         normal = nil
-        plane = nil
+        planes = []
+        # Clear previous VGD cuts in all contexts before capturing this scene.
+        # Root cuts from 1.0.0 are retained for old scenes, but not activated here.
+        entity_contexts(model).each do |entities|
+          active = entities.active_section_plane
+          entities.active_section_plane = nil if entities == model.entities || (active && active.get_attribute(DICT, 'owner') == 'VGD Scenes')
+        end
         if kind == 'SECTION'
           point, normal = Geometry.section(target, opts)
-          plane = plane_for(model, page)
-          if plane
-            plane.set_plane([point, normal])
-          else
-            plane = model.entities.add_section_plane([point, normal])
-            raise 'SketchUp không tạo được mặt cắt.' unless plane
-            plane.layer = model.layers[0]
-            plane.set_attribute(DICT, 'owner', 'VGD Scenes')
-            plane.set_attribute(DICT, 'scene_pid', page.persistent_id.to_s)
+          target[:resolved].each do |_path, transform, entities|
+            local = Geometry.local_plane(transform, point, normal)
+            plane = entities.find { |e| e.is_a?(Sketchup::SectionPlane) && e.get_attribute(DICT, 'owner') == 'VGD Scenes' && e.get_attribute(DICT, 'scene_pid').to_s == page.persistent_id.to_s }
+            if plane
+              plane.set_plane(local)
+            else
+              plane = entities.add_section_plane(local)
+              raise 'SketchUp không tạo được mặt cắt.' unless plane
+              plane.layer = model.layers[0]
+              plane.set_attribute(DICT, 'owner', 'VGD Scenes')
+              plane.set_attribute(DICT, 'scene_pid', page.persistent_id.to_s)
+            end
+            plane.name = "VGD · #{opts['section_name']}"
+            plane.hidden = true
+            entities.active_section_plane = plane
+            planes << plane
           end
-          plane.name = "VGD · #{opts['section_name']}"
-          plane.hidden = true
         end
         # The cut is selected BEFORE the page is captured.
-        model.entities.active_section_plane = plane
-        model.rendering_options['DisplaySectionCuts'] = !plane.nil?
+        model.rendering_options['DisplaySectionCuts'] = !planes.empty?
         model.rendering_options['DisplaySectionPlanes'] = false
         Geometry.fit(model, target, kind, opts, normal)
         prepare_page(page)
         raise 'SketchUp không lưu được trạng thái scene.' unless page.update(flags)
         isolate(page, model, target) if opts['isolate']
         page.set_attribute(DICT, 'owner', 'VGD Scenes')
-        page.set_attribute(DICT, 'source', { 'paths' => target[:paths], 'kind' => kind, 'options' => opts }.to_json)
+        index = rename_from_target(model, page, target, kind, opts, index)
+        page.set_attribute(DICT, 'source', { 'paths' => target[:paths], 'kind' => kind, 'options' => opts, 'name_index' => index }.to_json)
+        SceneFrame.store(page, opts)
         page
       end
 
@@ -127,11 +162,13 @@ module VGD
         raise ArgumentError, 'Tối đa 100 scene mỗi lượt. Giảm đối tượng hoặc góc nhìn.' if sets.length * kinds.length > 100
         targets = sets.map { |set| Geometry.target(model, set, opts['axis_mode']) }
         targets.each { |target| Geometry.section(target, opts) } if section_only
-        snapshot = ViewState.new(model, false)
+        targets.each { |target| Geometry.validate_section_target(target) } if section_only
+        snapshot = ViewState.new(model)
         generated = []
         Scenes.operation(model, section_only ? 'Tạo mặt cắt' : 'Tạo góc nhìn') do
           begin
             targets.each do |target|
+              target = Geometry.unique_section_target(model, target, opts, snapshot) if section_only
               kinds.each do |kind|
                 existing = model.pages.find do |page|
                   next false unless owned?(page)
@@ -141,8 +178,16 @@ module VGD
                 end
                 label_kind = kind == 'SECTION' ? "SEC_#{opts['section_name']}" : kind
                 page = existing || model.pages.add(unique_name(model, name(opts, target, label_kind, generated.length + 1)))
-                write(model, page, target, kind, opts)
+                write(model, page, target, kind, opts, existing ? nil : generated.length + 1)
                 generated << page
+              end
+              # A view refresh also renames unrequested views and section scenes
+              # belonging to this exact source set, using their stored template.
+              model.pages.each do |page|
+                next unless owned?(page) && !generated.include?(page)
+                source = metadata(page)
+                next unless source['paths'] == target[:paths]
+                rename_from_target(model, page, target, source['kind'], Scenes.options(source['options']))
               end
             end
             model.set_attribute(DICT, 'settings', opts.to_json)
@@ -161,12 +206,16 @@ module VGD
         plans = pages.map do |page|
           data = metadata(page); opts = Scenes.options(data.fetch('options'))
           target = Geometry.target(model, data.fetch('paths'), opts['axis_mode'])
+          Geometry.validate_section_target(target) if data['kind'] == 'SECTION'
           [page, target, data.fetch('kind'), opts]
         end
-        snapshot = ViewState.new(model, false)
+        snapshot = ViewState.new(model)
         Scenes.operation(model, 'Cập nhật từ đối tượng') do
           begin
-            plans.each { |page, target, kind, opts| write(model, page, target, kind, opts) }
+            plans.each do |page, target, kind, opts|
+              target = Geometry.unique_section_target(model, target, opts, snapshot) if kind == 'SECTION'
+              write(model, page, target, kind, opts)
+            end
           ensure
             snapshot.restore
           end
@@ -193,6 +242,13 @@ module VGD
           page.use_hidden_layers = true
           page.use_section_planes = true
           raise 'Không lưu được scene.' unless page.update(flags)
+          base = Scenes.settings(model)
+          working = if model.pages.selected_page == page && page.get_attribute(DICT, 'frame')
+                      SceneFrame.read(page, base)
+                    else
+                      JSON.parse(model.get_attribute(DICT, 'working_frame', '{}'))
+                    end
+          SceneFrame.store(page, SceneFrame.from_camera(model.active_view.camera, base.merge(working)))
           # Refit-from-source would overwrite a manually composed camera.
           page.set_attribute(DICT, 'camera_custom', true) if owned?(page)
         end
@@ -205,9 +261,10 @@ module VGD
         Scenes.operation(model, 'Xóa scene đã chọn') do
           pages.each do |page|
             # Keep a plane if another scene refers to it; never erase foreign planes.
-            plane = owned?(page) ? plane_for(model, page) : nil
+            planes = owned?(page) ? planes_for(model, page) : []
             model.pages.erase(page)
-            if plane && plane.valid?
+            planes.each do |plane|
+              next unless plane.valid?
               # Other pages can capture the same native section: retain geometry conservatively.
               plane.set_attribute(DICT, 'orphan', true)
             end

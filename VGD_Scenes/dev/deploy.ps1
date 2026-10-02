@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $project = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $pluginRoot = [IO.Path]::GetFullPath($PluginRoot).TrimEnd('\')
 $runtime = Join-Path $project 'runtime'
-$owned = @('vgd_scenes.rb','vgd_scenes\utils.rb','vgd_scenes\geometry.rb','vgd_scenes\scenes.rb','vgd_scenes\frame.rb','vgd_scenes\export.rb','vgd_scenes\main.rb','vgd_scenes\dialog.html','vgd_scenes\dialog.css','vgd_scenes\dialog.js','vgd_scenes\icon.svg')
+$owned = @('vgd_scenes.rb','vgd_scenes\utils.rb','vgd_scenes\geometry.rb','vgd_scenes\scenes.rb','vgd_scenes\frame.rb','vgd_scenes\export.rb','vgd_scenes\main.rb','vgd_scenes\dialog.html','vgd_scenes\dialog.css','vgd_scenes\dialog.js','vgd_scenes\icon.svg','vgd_scenes\quick_views.svg')
 $legacy = Join-Path $pluginRoot 'tplus_scenes_to_layout.rb'
 $retired = Join-Path $pluginRoot 'tplus_scenes_to_layout.rb.vgd-disabled'
 function Assert-Target([string]$path) {
@@ -20,7 +20,8 @@ function Other-Hashes {
   $result = @{}
   foreach ($file in Get-ChildItem -LiteralPath $pluginRoot -File -Recurse -Force) {
     $relative = $file.FullName.Substring($pluginRoot.Length + 1)
-    if ($relative -eq 'vgd_scenes.rb' -or $relative.StartsWith('vgd_scenes\',[StringComparison]::OrdinalIgnoreCase) -or $relative -eq 'tplus_scenes_to_layout.rb' -or $relative -eq 'tplus_scenes_to_layout.rb.vgd-disabled') { continue }
+    if ($relative -eq 'vgd_scenes.rb' -or $relative.StartsWith('vgd_scenes\',[StringComparison]::OrdinalIgnoreCase)) { continue }
+    if ($RetireLegacy -and ($relative -eq 'tplus_scenes_to_layout.rb' -or $relative -eq 'tplus_scenes_to_layout.rb.vgd-disabled')) { continue }
     $result[$relative] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
   }
   return $result
@@ -40,7 +41,7 @@ if ($RetireLegacy -and (Test-Path -LiteralPath $legacy)) {
   if ((Get-FileHash -LiteralPath $legacy).Hash -ne $reviewedHash) { throw 'Old loader differs from reviewed version; do not retire automatically.' }
   if (Test-Path -LiteralPath $retired) { throw 'Retired loader already exists; refuse overwrite.' }
 }
-if ($VerifyOnly) { Write-Output 'Verified: 11 exact VGD targets and reviewed legacy loader. Other plugins excluded.'; exit 0 }
+if ($VerifyOnly) { Write-Output 'Verified: 12 exact VGD targets and reviewed legacy loader. Other plugins excluded.'; exit 0 }
 $backup = Join-Path $project ('outputs\install_' + (Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
 $null = New-Item -ItemType Directory -Path $backup
 $before = Other-Hashes
@@ -70,7 +71,7 @@ try {
   }
   $after = Other-Hashes
   $changed = @(@($before.Keys + $after.Keys) | Sort-Object -Unique | Where-Object { $before[$_] -ne $after[$_] })
-  $report = [ordered]@{ installed_at=(Get-Date -Format o); plugin_root=$pluginRoot; version='1.0.0'; installed_files=$owned; other_files_checked=$before.Count; other_files_changed=$changed; legacy_loader_retired=$didRetire; backup=$backup }
+  $report = [ordered]@{ installed_at=(Get-Date -Format o); plugin_root=$pluginRoot; version='1.0.4'; installed_files=$owned; other_files_checked=$before.Count; other_files_changed=$changed; legacy_loader_retired=$didRetire; backup=$backup }
   $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $backup 'install_report.json') -Encoding utf8
   if ($changed.Count) { throw "Other plugin files changed during install: $($changed -join ', ')" }
   Write-Output ($report | ConvertTo-Json -Depth 5)

@@ -6,6 +6,12 @@ module VGD
       PAPER = { 'A4_L' => [297, 210], 'A4_P' => [210, 297], 'A3_L' => [420, 297], 'A3_P' => [297, 420] }.freeze
       def initialize(model, pages, opts, destination, callback)
         @model = model; @pages = pages; @opts = opts; @destination = destination; @callback = callback
+        @frames = pages.map do |page|
+          base = SceneFrame.read(page, opts)
+          Scenes.export_dimensions(base, opts['export_scale']).merge('aspect' => base['width'].to_f / base['height'])
+        rescue StandardError => e
+          raise ArgumentError, "#{page.name}: #{e.message}"
+        end
         @index = 0; @files = []; @errors = []; @cancelled = false; @done = false
         @timer = nil; @tmp = nil; @state = nil
       end
@@ -60,19 +66,21 @@ module VGD
         extension = @opts['format'] == 'jpg' ? 'jpg' : 'png'
         temporary = File.join(@tmp, format('%04d.%s', @index + 1, extension))
         begin
-          camera = Scenes.camera_copy(@model.active_view.camera)
-          camera.aspect_ratio = @opts['width'].to_f / @opts['height']
+          frame = @frames[@index]
+          # A live fit/ratio preview must not replace an owned scene's saved camera.
+          camera = Scenes.camera_copy(SceneStore.owned?(page) ? page.camera : @model.active_view.camera)
+          camera.aspect_ratio = frame['aspect']
           @model.active_view.camera = camera
           @model.active_view.refresh
-          success = @model.active_view.write_image(filename: temporary, width: @opts['width'], height: @opts['height'],
+          success = @model.active_view.write_image(filename: temporary, width: frame['width'], height: frame['height'],
             antialias: true, compression: 0.95, transparent: extension == 'png' && @opts['format'] == 'png' && @opts['transparent'])
           raise 'SketchUp không ghi được ảnh.' unless success && File.file?(temporary) && File.size(temporary) > 0
           if @opts['format'] == 'pdf'
-            @files << { page: page.name, path: temporary }
+            @files << { page: page.name, path: temporary, width: frame['width'], height: frame['height'] }
           else
             output = Scenes.available_path(@destination, format('%02d_%s', @index + 1, page.name), extension)
             FileUtils.mv(temporary, output)
-            @files << { page: page.name, path: output }
+            @files << { page: page.name, path: output, width: frame['width'], height: frame['height'] }
           end
         rescue StandardError => e
           @errors << { page: page.name, error: e.message }
@@ -100,11 +108,11 @@ module VGD
         doc.page_info.width = pw; doc.page_info.height = ph
         layer = doc.layers.first
         padding = 10.0 / 25.4
-        aspect = @opts['width'].to_f / @opts['height']
         available_w = pw - padding * 2; available_h = ph - padding * 2
-        width = [available_w, available_h * aspect].min; height = width / aspect
-        x = (pw - width) / 2.0; y = (ph - height) / 2.0
         @files.each_with_index do |item, index|
+          aspect = item[:width].to_f / item[:height]
+          width = [available_w, available_h * aspect].min; height = width / aspect
+          x = (pw - width) / 2.0; y = (ph - height) / 2.0
           page = index.zero? ? doc.pages.first : doc.pages.add(item[:page])
           page.name = item[:page]
           image = Layout::Image.new(item[:path], Geom::Bounds2d.new(x, y, width, height))
@@ -144,15 +152,6 @@ module VGD
         report = { success: success, cancelled: @cancelled, message: message, count: @files.length,
           total: @pages.length, errors: @errors, path: @opts['format'] == 'pdf' ? (success ? @destination : nil) : @destination,
           files: @opts['format'] == 'pdf' ? [] : @files, restore_error: restore_error }
-        if @opts['format'] != 'pdf' && File.directory?(@destination)
-          begin
-            log = Scenes.available_path(@destination, 'VGD_export_report', 'json')
-            File.write(log, JSON.pretty_generate(report))
-            report[:report_path] = log
-          rescue StandardError => e
-            report[:message] += " Không ghi được báo cáo: #{e.message}"
-          end
-        end
         @callback.call(:complete, report)
       end
     end
