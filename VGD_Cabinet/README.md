@@ -1,6 +1,20 @@
-# VGD_Cabinet · 4.4.0-beta.1
+# VGD_Cabinet · 4.4.0-beta.2.1
 
 VGD_Cabinet thay tên T+ Cabinet trong hệ sinh thái VGD.
+
+## Beta 2 · Dựng từ mô tả
+
+Mở **Dựng từ mô tả → Hướng dẫn cho ChatGPT**, copy hướng dẫn và gửi cùng ảnh + rộng/sâu/cao mong muốn. ChatGPT trả về khối JSON; dán vào plugin, bấm **Kiểm tra → Áp dụng cho tủ mới → Đặt tủ mới**. Có **Nạp ví dụ** để thử không cần ảnh/API key.
+
+Plugin đọc cấu hình, không tự phân tích ảnh hoặc hiểu văn xuôi. Bắt buộc đơn vị mm và đủ w/d/h; kiểm tra kiểu dữ liệu, tên thông số, lựa chọn và giới hạn hình học. Xem trước hiện kích thước/module, giả định, trường ước lượng, các giá trị mặc định và toàn bộ cấu hình. Không suy đoán số đo thật từ ảnh.
+
+Áp dụng tạo bản nháp riêng, tắt live update, không tự dựng/sửa model/lưu preset. Thay đổi vùng chọn không ghi đè bản nháp. Muốn sửa tủ cũ: Dựng từ mô tả → Trở lại tủ đang chọn. Đặt thành công thì bảng trở lại theo tủ vừa dựng. Reload/đóng bảng sẽ bỏ bản nháp chưa đặt; thư viện mẫu đã lưu không bị ảnh hưởng.
+
+Beta 2 chỉ nhập những cấu tạo bộ dựng hiện hỗ trợ. Các module có thể khác rộng nhưng dùng chung cánh/đợt/hộc. Số cánh/vách hoặc tầng đã khai báo tắt tự động tương ứng nếu cấu hình không chủ động bật. Móc tay mới luôn độc lập, không áp quy tắc migrate mẫu T+ cũ.
+
+Hotfix beta 2.1: khi `unsupported_features` không rỗng, áp dụng đầy đủ vẫn bị khóa nhưng có **Dựng phần được hỗ trợ**. Hộp xác nhận liệt kê toàn bộ phần bỏ qua, kích thước và số khoang/cánh. Phải đồng ý rõ ràng mới nạp bản nháp; hủy không thay đổi bảng/model. Backend kiểm tra lại JSON và đúng danh sách xác nhận. Sai đơn vị/kích thước/kiểu dữ liệu/tên tham số vẫn bị chặn, kể cả ở chế độ cơ bản.
+
+Chiều rộng/sâu/cao giữ nguyên cho tủ cơ bản; không tự trừ phần kệ trái hay chừa chi tiết chưa hỗ trợ. Ví dụ JSON 2200 × 600 × 2700 dùng nguyên rộng 2200; `h_top` từ 560 được tính lại thành 580 theo nẹp mặc định 20 và tầng dưới 2100. Muốn chừa kệ, sửa rộng tủ cơ bản và kiểm tra lại trước khi đặt. Bản nháp có cảnh báo rõ đang bỏ qua chi tiết, không phải bản dựng đầy đủ từ ảnh.
 
 - Preset lưu ở dữ liệu người dùng, ngoài thư mục Plugins; có backup và ghi qua file tạm. Tạo mới, Cập nhật mẫu đã chọn và Đổi tên là ba lệnh riêng. Tên trùng bị chặn, không đè mẫu khác.
 - Lần mở đầu đọc mẫu T+ cũ từ Preferences; không ghi lại Preferences T+. Các mẫu đã có giữ thông số của chúng, mặc định mới áp cho tủ mới/mẫu mặc định mới.
@@ -10,7 +24,7 @@ VGD_Cabinet thay tên T+ Cabinet trong hệ sinh thái VGD.
 
 ## Cài máy nhà
 
-Gói mới nằm trong outputs/vgd_cabinet_modeling. Chạy cabinet_dev/sync_sketchup_2022.ps1 để cài đúng 17 file, sao lưu và tắt loader T+ cũ; không sửa plugin khác. Dữ liệu preset không bị bộ cài ghi đè.
+Gói mới nằm trong outputs/vgd_cabinet_modeling. Chạy cabinet_dev/sync_sketchup_2022.ps1 để cài đúng 18 file, sao lưu và tắt loader T+ cũ; không sửa plugin khác. Dữ liệu preset không bị bộ cài ghi đè.
 
 **Khởi động lại SketchUp 2022 sau khi đổi thương hiệu**, vì module/menu/bộ nạp khác tên. Sau đó dùng Extensions → VGD Cabinet — Tiện ích → VGD — Nạp lại mã cho các lần sửa tiếp. Không tự đóng model đang làm.
 

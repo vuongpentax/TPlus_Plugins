@@ -48,5 +48,13 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .action-bar{margin:0;gap:7px}.action-bar button{flex:1;min-width:0;height:35px;font-size:12px}
 button:disabled{opacity:.38;cursor:not-allowed;box-shadow:none}
 .link-button{font-size:11px;max-width:100%;margin-top:8px}
+.description-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.description-actions button{min-height:30px;font-size:11px}
+#page_description textarea{display:block;box-sizing:border-box;width:100%;min-height:155px;margin:8px 0;padding:9px;resize:vertical;font:11px/1.5 monospace;background:var(--bg-main);color:var(--text-main);border:1px solid var(--border);border-radius:4px}
+#page_description textarea:focus-visible{outline:2px solid var(--primary)}
+#description_review{overflow-wrap:anywhere;user-select:text}
+#description_review pre{white-space:pre-wrap;font-size:10px}
+#description_draft_notice{flex-shrink:0;padding:7px 12px;background:var(--bg-main);border-bottom:1px solid var(--border);color:var(--text-secondary);font-size:11px;line-height:1.4;max-height:62px;overflow:auto}
+#btn_description_partial{margin:10px 0;max-width:100%;font-size:11px;min-height:30px}
 .highlight-box{margin-top:12px;padding:10px}
 @media(max-width:500px){.side-menu{width:115px}.menu-button{padding-left:4px;padding-right:4px;gap:5px;font-size:11px}.menu-button svg{width:16px;height:16px}#settings_content{padding:12px}label{font-size:11px}.context-bar{padding:8px 12px}}

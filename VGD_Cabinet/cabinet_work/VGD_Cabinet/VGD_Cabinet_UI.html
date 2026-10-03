@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head>
   <meta charset="utf-8">
-  <title>VGD Cabinet 4.4.0-beta.1</title>
+  <title>VGD Cabinet 4.4.0-beta.2.1</title>
   <style>
     :root {
       --bg-main: #FFFFFF;
@@ -142,15 +142,23 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .action-bar{margin:0;gap:7px}.action-bar button{flex:1;min-width:0;height:35px;font-size:12px}
 button:disabled{opacity:.38;cursor:not-allowed;box-shadow:none}
 .link-button{font-size:11px;max-width:100%;margin-top:8px}
+.description-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.description-actions button{min-height:30px;font-size:11px}
+#page_description textarea{display:block;box-sizing:border-box;width:100%;min-height:155px;margin:8px 0;padding:9px;resize:vertical;font:11px/1.5 monospace;background:var(--bg-main);color:var(--text-main);border:1px solid var(--border);border-radius:4px}
+#page_description textarea:focus-visible{outline:2px solid var(--primary)}
+#description_review{overflow-wrap:anywhere;user-select:text}
+#description_review pre{white-space:pre-wrap;font-size:10px}
+#description_draft_notice{flex-shrink:0;padding:7px 12px;background:var(--bg-main);border-bottom:1px solid var(--border);color:var(--text-secondary);font-size:11px;line-height:1.4;max-height:62px;overflow:auto}
+#btn_description_partial{margin:10px 0;max-width:100%;font-size:11px;min-height:30px}
 .highlight-box{margin-top:12px;padding:10px}
 @media(max-width:500px){.side-menu{width:115px}.menu-button{padding-left:4px;padding-right:4px;gap:5px;font-size:11px}.menu-button svg{width:16px;height:16px}#settings_content{padding:12px}label{font-size:11px}.context-bar{padding:8px 12px}}
 </style></head>
 <body><div class="header">
-    <div class="header-left"><span>VGD_CABINET <small>4.4 · beta 1</small></span></div>
+    <div class="header-left"><span>VGD_CABINET <small>4.4 · beta 2.1</small></span></div>
     <button id="btn_theme" onclick="toggleTheme()" class="btn-icon" title="Sáng/Tối">
       <span id="theme_icon">Tối</span>
     </button>
-  </div><div class="context-bar"><span id="selection_mode">Tạo tủ mới</span><span id="size_summary"></span></div><div class="workspace"><nav class="side-menu" aria-label="Nhóm thông số"><button type="button" class="menu-button" data-page="general" aria-controls="page_general" onclick="selectPage('general')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z M9 5v14 M15 5v14"></path></svg><span>Tổng thể</span></button><button type="button" class="menu-button" data-page="frame" aria-controls="page_frame" onclick="selectPage('frame')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4z M4 7h16 M4 17h16"></path></svg><span>Thùng tủ</span></button><button type="button" class="menu-button" data-page="compartments" aria-controls="page_compartments" onclick="selectPage('compartments')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3z M11 3v18 M11 10h10 M3 15h8"></path></svg><span>Chia khoang</span></button><button type="button" class="menu-button" data-page="doors" aria-controls="page_doors" onclick="selectPage('doors')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4z M12 3v18 M9 11v3 M15 11v3"></path></svg><span>Cánh tủ</span></button><button type="button" class="menu-button" data-page="drawers" aria-controls="page_drawers" onclick="selectPage('drawers')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3z M3 9h18 M3 15h18 M10 6h4 M10 12h4 M10 18h4"></path></svg><span>Ngăn kéo</span></button><div class="menu-note">DỰNG HÌNH<br><span>Đơn vị: mm</span></div></nav><main id="settings_content"><section id="page_general" class="menu-page" hidden=""><h2>Tổng thể</h2><div class="preset-section">
+  </div><div class="context-bar"><span id="selection_mode">Tạo tủ mới</span><span id="size_summary"></span></div><div id="description_draft_notice" hidden="" role="status"></div><div class="workspace"><nav class="side-menu" aria-label="Nhóm thông số"><button type="button" class="menu-button" data-page="general" aria-controls="page_general" onclick="selectPage('general')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z M9 5v14 M15 5v14"></path></svg><span>Tổng thể</span></button><button type="button" class="menu-button" data-page="frame" aria-controls="page_frame" onclick="selectPage('frame')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4z M4 7h16 M4 17h16"></path></svg><span>Thùng tủ</span></button><button type="button" class="menu-button" data-page="compartments" aria-controls="page_compartments" onclick="selectPage('compartments')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3z M11 3v18 M11 10h10 M3 15h8"></path></svg><span>Chia khoang</span></button><button type="button" class="menu-button" data-page="doors" aria-controls="page_doors" onclick="selectPage('doors')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4z M12 3v18 M9 11v3 M15 11v3"></path></svg><span>Cánh tủ</span></button><button type="button" class="menu-button" data-page="drawers" aria-controls="page_drawers" onclick="selectPage('drawers')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3z M3 9h18 M3 15h18 M10 6h4 M10 12h4 M10 18h4"></path></svg><span>Ngăn kéo</span></button><button type="button" class="menu-button" data-page="description" aria-controls="page_description" onclick="selectPage('description')"><span>Dựng từ mô tả</span></button><div class="menu-note">DỰNG HÌNH<br><span>Đơn vị: mm</span></div></nav><main id="settings_content"><section id="page_general" class="menu-page" hidden=""><h2>Tổng thể</h2><div class="preset-section">
     <select id="preset_select" onchange="loadPreset()" style="width: 100%; text-align-last: left; text-align: left; height: 28px;">
       <option value="">-- Chọn mẫu tủ --</option>
     </select>
@@ -391,7 +399,16 @@ button:disabled{opacity:.38;cursor:not-allowed;box-shadow:none}
       </div><div class="form-group" id="group_drawer_bottom_t" style="display: none;">
         <label for="drawer_bottom_t">Dày đáy NK (mm)</label>
         <input type="number" step="0.5" min="1" id="drawer_bottom_t" value="6">
-      </div></section></div></div></div></section></main></div><footer class="fixed-actions"><div id="model_status" role="status">Chọn mẫu hoặc nhập kích thước rồi đặt tủ mới.</div><div class="checkbox-row"><input id="live_update" type="checkbox"><label for="live_update">Tự cập nhật khi sửa thông số</label></div><div class="action-bar"><button class="btn-tool" onclick="placeCabinet()" id="btn_place">Đặt tủ mới</button><button class="btn-tool" onclick="drawToolCabinet()">Vẽ 3 điểm</button><button class="btn-update" id="btn_update" onclick="updateCabinet(true)" disabled="">Cập nhật</button></div></footer><script>// Menu navigation never sends modeling callbacks or changes parameter values.
+      </div></section></div></div></div></section><section id="page_description" class="menu-page" hidden=""><h2>Dựng từ mô tả</h2>
+<p>Gửi ảnh và rộng × sâu × cao mong muốn cho ChatGPT cùng hướng dẫn bên dưới. Dán khối JSON trả về, không dán phần giải thích. Không cần API key.</p>
+<p>Beta 2 dùng cấu tạo hiện có. Các module dùng chung thiết lập cánh, đợt và hộc; chưa hỗ trợ mỗi module một cấu tạo khác nhau.</p>
+<div class="description-actions"><button type="button" class="btn-secondary" onclick="showDescriptionPrompt()">Hướng dẫn cho ChatGPT</button><button type="button" class="btn-secondary" onclick="insertDescriptionExample()">Nạp ví dụ</button></div>
+<details id="description_prompt_box" class="advanced"><summary>Hướng dẫn · chọn toàn bộ và copy</summary><textarea id="description_prompt" readonly="" aria-label="Hướng dẫn cho ChatGPT"></textarea></details>
+<label for="description_text">Khối cấu hình JSON</label><textarea id="description_text" spellcheck="false" placeholder="Dán khối VGD_CABINET_DESCRIPTION…" oninput="invalidateDescriptionPreview()"></textarea>
+<div class="description-actions"><button type="button" id="btn_description_check" onclick="checkDescription()">Kiểm tra</button><button type="button" id="btn_description_apply" onclick="applyDescription()" disabled="">Áp dụng cho tủ mới</button><button type="button" id="btn_description_partial" onclick="applyDescription(true)" hidden="" disabled="">Dựng phần được hỗ trợ</button></div>
+<div id="description_review" role="status" aria-live="polite"></div>
+<button type="button" id="btn_description_leave" class="btn-secondary" onclick="returnToSelectedCabinet()" hidden="">Trở lại tủ đang chọn</button>
+<p>Nhập chỉ đổi bản nháp. Không tự dựng, không cập nhật tủ đang chọn, không tự lưu mẫu. Kiểm tra các giá trị ước lượng trước khi bấm Đặt tủ mới.</p></section></main></div><footer class="fixed-actions"><div id="model_status" role="status">Chọn mẫu hoặc nhập kích thước rồi đặt tủ mới.</div><div class="checkbox-row"><input id="live_update" type="checkbox"><label for="live_update">Tự cập nhật khi sửa thông số</label></div><div class="action-bar"><button class="btn-tool" onclick="placeCabinet()" id="btn_place">Đặt tủ mới</button><button class="btn-tool" onclick="drawToolCabinet()">Vẽ 3 điểm</button><button class="btn-update" id="btn_update" onclick="updateCabinet(true)" disabled="">Cập nhật</button></div></footer><script>// Menu navigation never sends modeling callbacks or changes parameter values.
 function selectPage(name) {
   var page=document.getElementById('page_'+name);if(!page)return;
   document.querySelectorAll('.menu-page').forEach(function(p){p.hidden=p!==page;});
@@ -445,6 +462,95 @@ function initMenu() {
   selectSubpage('frame','sides');selectSubpage('compartments','dividers');selectSubpage('doors','front');selectSubpage('drawers','layout');
   document.addEventListener('input',refreshContextUI);document.addEventListener('change',refreshContextUI);
   refreshContextUI();
+}
+
+var descriptionContract=null, descriptionRequestId=0, descriptionPreview=null, descriptionDraftParams=null;
+function receiveDescriptionContract(contract) { descriptionContract=contract; }
+function invalidateDescriptionPreview() {
+  descriptionRequestId++;descriptionPreview=null;
+  document.getElementById('btn_description_apply').disabled=true;
+  document.getElementById('btn_description_partial').disabled=true;
+  document.getElementById('btn_description_partial').hidden=true;
+  document.getElementById('description_review').textContent='Chưa kiểm tra / nội dung đã thay đổi.';
+}
+function insertDescriptionExample() {
+  if(!descriptionContract){showModelStatus('Đợi plugin nạp hướng dẫn.',true);return;}
+  document.getElementById('description_text').value=JSON.stringify(descriptionContract.example,null,2);
+  invalidateDescriptionPreview();
+}
+function showDescriptionPrompt() {
+  if(!descriptionContract){showModelStatus('Đợi plugin nạp hướng dẫn.',true);return;}
+  var text='Phân tích ảnh tủ để dựng bằng VGD_Cabinet 4.4 beta 2. Hỏi tôi rộng/sâu/cao mong muốn nếu chưa có; không đo kích thước thật từ ảnh không có tỷ lệ. Chỉ xuất một khối JSON theo mẫu bên dưới, đơn vị mm. parameters chỉ dùng các tên trong danh sách mặc định; giữ đúng kiểu dữ liệu và giá trị lựa chọn. Không xuất mã Ruby/JavaScript. Các thông số không xác định có thể bỏ để plugin dùng mặc định, trừ w,d,h bắt buộc. Ghi giả định vào assumptions; tên thông số ước lượng có trong parameters vào estimated_fields. Cấu tạo chưa hỗ trợ ghi vào unsupported_features, không âm thầm lược bỏ. Các module chỉ khác rộng, dùng chung cấu hình cánh/đợt/hộc; không có modules dạng cây hay cấu hình riêng từng khoang. door_count là số cánh của từng module, drawer_count là số tầng mỗi cụm; không phải tổng cả tủ. Với số cánh/vách hoặc tầng đã chỉ định, không bật tự động tương ứng. Móc tay cánh front_bevel và móc tay hộc drawer_bevel độc lập. Kích thước phủ bì gồm cánh/hậu, cao gồm chân/nẹp.\n\nMẪU:\n'+JSON.stringify(descriptionContract.example,null,2)+'\n\nTHÔNG SỐ MẶC ĐỊNH (không phải số đo từ ảnh):\n'+JSON.stringify(descriptionContract.defaults,null,2)+'\n\nGIÁ TRỊ LỰA CHỌN HỢP LỆ:\n'+JSON.stringify(descriptionContract.enums,null,2);
+  var box=document.getElementById('description_prompt_box'),area=document.getElementById('description_prompt');
+  area.value=text;box.open=true;area.focus();area.select();
+}
+function checkDescription() {
+  invalidateDescriptionPreview();
+  document.getElementById('description_review').textContent='Đang kiểm tra…';
+  if(window.sketchup)window.sketchup.preview_description({text:document.getElementById('description_text').value,request_id:descriptionRequestId});
+}
+function receiveDescriptionPreview(id,result) {
+  if(id!==descriptionRequestId)return; // Ignore late replies after edits/new requests.
+  descriptionPreview=result;
+  var review=document.getElementById('description_review');review.replaceChildren();
+  function line(text){var p=document.createElement('p');p.textContent=text;review.appendChild(p);}
+  if(result.error){line(result.error);return;}
+  line(result.summary);
+  (result.module_summary||[]).forEach(function(s,i){line('Module '+(i+1)+': '+s);});
+  line('Ước lượng: '+(result.estimated_fields.join(', ')||'không khai báo'));
+  result.assumptions.forEach(function(s){line('Giả định: '+s);});
+  (result.adjustments||[]).forEach(function(s){line('Quy tắc bộ dựng: '+s);});
+  result.unsupported_features.forEach(function(s){line('Chưa hỗ trợ — sẽ bỏ qua nếu dựng cơ bản: '+s);});
+  if(result.can_apply_partial)line('Có thể dựng phần cơ bản sau khi xác nhận bỏ qua. Kích thước w/d/h dùng nguyên cho tủ cơ bản, không tự trừ kệ bên hoặc chừa phần chưa hỗ trợ.');
+  var details=document.createElement('details'),summary=document.createElement('summary');
+  summary.textContent='Thông số không khai báo · mặc định/quy tắc ('+result.defaulted_fields.length+')';details.appendChild(summary);
+  var pre=document.createElement('pre');pre.textContent=result.defaulted_fields.map(function(k){return k+': '+result.parameters[k];}).join('\n');details.appendChild(pre);review.appendChild(details);
+  var all=document.createElement('details'),title=document.createElement('summary'),values=document.createElement('pre');
+  title.textContent='Toàn bộ cấu hình đã kiểm tra';values.textContent=JSON.stringify(result.parameters,null,2);
+  all.appendChild(title);all.appendChild(values);review.appendChild(all);
+  document.getElementById('btn_description_apply').disabled=!result.can_apply;
+  document.getElementById('btn_description_partial').hidden=!result.can_apply_partial;
+  document.getElementById('btn_description_partial').disabled=!result.can_apply_partial;
+}
+function applyDescription(partial) {
+  if(!descriptionPreview)return;
+  var data={text:document.getElementById('description_text').value,request_id:descriptionRequestId};
+  if(partial===true){
+    if(!descriptionPreview.can_apply_partial)return;
+    var message='DỰNG PHẦN CƠ BẢN, KHÔNG DỰNG ĐẦY ĐỦ MẪU ẢNH\n\n'+descriptionPreview.summary+'\n'+descriptionPreview.module_summary.join('\n')+'\n\nBỎ QUA:\n'+descriptionPreview.unsupported_features.map(function(s,i){return (i+1)+'. '+s;}).join('\n')+'\n\nDùng nguyên kích thước đã nhập cho tủ cơ bản. KHÔNG tự trừ chiều rộng kệ bên hoặc chừa phần chưa hỗ trợ. Kiểm tra/sửa kích thước trong bảng trước khi Đặt tủ mới.\n\nĐồng ý bỏ qua các mục trên và nạp bản nháp?';
+    if(!window.confirm(message))return;
+    data.allow_partial=true;data.acknowledged_features=descriptionPreview.unsupported_features.slice();
+  }else if(!descriptionPreview.can_apply)return;
+  document.getElementById('btn_description_apply').disabled=true;
+  document.getElementById('btn_description_partial').disabled=true;
+  if(window.sketchup)window.sketchup.apply_description(data);
+}
+function applyDescriptionDraft(params,omittedFeatures) {
+  if(updateTimer){clearTimeout(updateTimer);updateTimer=null;}
+  descriptionDraftParams=params;setSelectedCabinet(null);selectedModel=null;
+  updateFormFromRuby(params);
+  // Legacy auto-door UI calculates against total width, not each independent module.
+  // Keep the validated values; geometry resolves automatic rules per module at placement.
+  Object.keys(params).forEach(function(k){var e=document.getElementById(k);if(e){if(e.type==='checkbox')e.checked=params[k];else e.value=params[k];}});
+  refreshContextUI();
+  document.getElementById('preset_select').value='';
+  document.getElementById('live_update').checked=false;
+  var partial=Array.isArray(omittedFeatures)&&omittedFeatures.length>0;
+  document.getElementById('selection_mode').textContent=partial?'Tủ cơ bản từ mô tả':'Tủ mới từ mô tả';
+  var notice=document.getElementById('description_draft_notice');notice.hidden=!partial;
+  notice.textContent=partial?'Dựng cơ bản · bỏ qua '+omittedFeatures.length+' chi tiết. Kích thước dùng nguyên, không tự chừa kệ bên. Xem danh sách trong Dựng từ mô tả; kiểm tra thông số trước khi đặt.':'';
+  document.getElementById('btn_description_leave').hidden=false;
+  showModelStatus('Đã nạp bản nháp. Kiểm tra thông số rồi bấm Đặt tủ mới; chưa thay đổi model.',false);
+  selectPage('general');
+}
+function leaveDescriptionDraft() {
+  descriptionDraftParams=null;
+  document.getElementById('description_draft_notice').hidden=true;
+  document.getElementById('btn_description_leave').hidden=true;
+}
+function returnToSelectedCabinet() {
+  if(updateTimer){clearTimeout(updateTimer);updateTimer=null;}
+  if(window.sketchup)window.sketchup.leave_description_draft(null);
 }
 
 
@@ -990,6 +1096,7 @@ function initMenu() {
 
     function updateFormFromRuby(params) {
       if (!params) return;
+      if (descriptionDraftParams && params.__target_pid != null) return;
       if (!params.handle_split_v1) {
         params=Object.assign({},params,{handle_split_v1:true,drawer_bevel:params.front_bevel||false,drawer_bevel_lip:params.bevel_lip===undefined?2:params.bevel_lip});
       }
@@ -1141,4 +1248,13 @@ function initMenu() {
         }
       }
     });
-  </script></body></html>
+
+var baseGetFormData=getFormData;
+getFormData=function(){
+  var data=baseGetFormData();
+  if(descriptionDraftParams)Object.keys(descriptionDraftParams).forEach(function(k){
+    if(!document.getElementById(k))data[k]=descriptionDraftParams[k];
+  });
+  return data;
+};
+</script></body></html>

@@ -1,4 +1,17 @@
-VGD_Cabinet 4.4.0-beta.1
+VGD_Cabinet 4.4.0-beta.2.1
+
+DỰNG TỪ MÔ TẢ (BETA 2)
+- Dựng từ mô tả > Hướng dẫn cho ChatGPT: chọn toàn bộ, copy gửi cùng ảnh + rộng/sâu/cao mong muốn.
+- Copy khối JSON ChatGPT trả về, dán vào plugin > Kiểm tra > đọc giả định/ước lượng/mặc định > Áp dụng cho tủ mới > Đặt tủ mới.
+- Nạp ví dụ để thử nhanh. Không cần API key; plugin không phân tích ảnh hoặc đọc văn xuôi trực tiếp.
+- Bắt buộc mm và w/d/h. Không dùng ảnh không tỷ lệ như bản đo sản xuất.
+- Các module dùng chung cánh/đợt/hộc; cấu tạo chưa hỗ trợ sẽ chặn áp dụng đầy đủ.
+- Beta 2.1: Dựng phần được hỗ trợ > đọc danh sách bỏ qua/kích thước > Đồng ý > kiểm tra bảng > Đặt tủ mới. Hủy không nạp.
+- Chế độ cơ bản dùng nguyên rộng/sâu/cao; KHÔNG tự trừ phần kệ trái hay chừa chi tiết chưa hỗ trợ. Chỉnh kích thước nếu cần.
+- JSON sai/kích thước không hợp lệ/thông số lạ vẫn bị chặn. Không cần xóa unsupported_features để thử cơ bản.
+- Nhập không sửa tủ chọn/không lưu đè mẫu. Bản nháp tắt tự cập nhật và không bị vùng chọn ghi đè.
+- Muốn sửa tủ cũ: Dựng từ mô tả > Trở lại tủ đang chọn. Reload/đóng bảng bỏ bản nháp chưa đặt.
+- Sau đồng bộ beta 2, dùng Extensions > VGD Cabinet — Tiện ích > VGD — Nạp lại mã. Không cần cài lại RBZ.
 
 Sau khi chuyển từ T+ Cabinet, khởi động lại SketchUp 2022 để nhận module, menu và toolbar VGD. Không đóng model đang làm khi chưa lưu.
 

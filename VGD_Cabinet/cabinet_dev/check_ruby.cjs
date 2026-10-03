@@ -20,11 +20,14 @@ const {RubyVM}=require('./dependencies.cjs').load('@ruby/wasm-wasi/dist/vm');
    console.log('Syntax OK:',name);
  }
  vm.eval(fs.readFileSync('cabinet_dev/sketchup_stub.rb','utf8'));
- for(const name of ['geometry_engine.rb','modeling_rules.rb','pano.rb','modeling.rb','defaults.rb','preset_store.rb'])vm.eval(fs.readFileSync(root+name,'utf8').replace(/^require_relative .*$/gm,''));
+ for(const name of ['geometry_engine.rb','modeling_rules.rb','pano.rb','modeling.rb','defaults.rb','preset_store.rb','description_import.rb'])vm.eval(fs.readFileSync(root+name,'utf8').replace(/^require_relative .*$/gm,''));
  vm.eval(fs.readFileSync('cabinet_dev/test_geometry.rb','utf8'));
  vm.eval(fs.readFileSync('cabinet_dev/test_vgd_features.rb','utf8'));
  const main=fs.readFileSync(root+'main43.rb','utf8').replace(/^require(?:_relative)? .*$/gm,'');
  vm.eval(main);
+ vm.eval('$partial_description_json='+JSON.stringify(fs.readFileSync('cabinet_dev/description_partial_fixture.json','utf8')).replace(/#/g,'\\#'));
+ vm.eval(fs.readFileSync('cabinet_dev/test_description.rb','utf8'));
+ fs.writeFileSync('outputs/description_cases.json',vm.eval('JSON.generate($description_cases)').toString());
  vm.eval(fs.readFileSync('cabinet_dev/test_presets.rb','utf8'));
  const {vm:restartVM}=await makeVM();
  restartVM.eval(fs.readFileSync(root+'preset_store.rb','utf8'));

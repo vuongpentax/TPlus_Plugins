@@ -10,9 +10,10 @@ require_relative 'draw_tool'
 require_relative 'utilities'
 require_relative 'reload'
 require_relative 'preset_store'
+require_relative 'description_import'
 module VGD_Cabinet
   remove_const(:VERSION) if const_defined?(:VERSION, false)
-  VERSION = '4.4.0-beta.1'
+  VERSION = '4.4.0-beta.2.1'
   class CabinetSelectionObserver < Sketchup::SelectionObserver
     def onSelectionBulkChange(_s); VGD_Cabinet.sync_current_selection; end
     def onSelectionAdded(_s,_e); VGD_Cabinet.sync_current_selection; end
@@ -93,12 +94,15 @@ module VGD_Cabinet
       ensure
         model.active_layer=active_tag; @busy=false
       end
+      @description_draft=false
+      @dialog.execute_script('leaveDescriptionDraft();') if dialog_visible?
       sync_current_selection
       inst
     rescue => e
       report_error(e)
     end
     def update_selected_cabinet(input)
+      raise ModelingRules::Invalid,'Đang tạo tủ từ mô tả. Bấm Trở lại tủ đang chọn trước khi cập nhật.' if @description_draft
       model=Sketchup.active_model; inst=find_cabinet_instance
       raise ModelingRules::Invalid,'Chọn đúng một tủ VGD để cập nhật. Dùng ĐẶT TỦ MỚI để tạo tủ.' unless inst
       raise ModelingRules::Invalid,'Tủ đang khóa. Hãy mở khóa trước khi sửa.' if inst.locked?
@@ -140,7 +144,7 @@ module VGD_Cabinet
       @dialog.execute_script("updateFormFromRuby(#{p.to_json});") if dialog_visible?
     end
     def sync_current_selection
-      return if @busy || !dialog_visible?
+      return if @busy || @description_draft || !dialog_visible?
       inst=find_cabinet_instance
       unless inst
         @dialog.execute_script('setSelectedCabinet(null);'); return
@@ -151,6 +155,29 @@ module VGD_Cabinet
       p['__target_pid']=inst.persistent_id.to_s
       p['__model_guid']=Sketchup.active_model.guid.to_s
       send_params_to_ui(p)
+    end
+    def preview_description(data)
+      @description_preview=nil
+      result=DescriptionImport.parse(data.fetch('text'))
+      @description_preview={'text'=>data['text'],'request_id'=>data['request_id'],'result'=>result}
+      @dialog.execute_script("receiveDescriptionPreview(#{data['request_id'].to_json},#{result.to_json});")
+    rescue => e
+      @dialog.execute_script("receiveDescriptionPreview(#{(data.is_a?(Hash) ? data['request_id'] : nil).to_json},#{ {'error'=>e.message}.to_json});") if dialog_visible?
+    end
+    def apply_description(data)
+      cached=@description_preview
+      raise ModelingRules::Invalid,'Mô tả đã đổi; hãy Kiểm tra lại.' unless cached && data.is_a?(Hash) && cached['text']==data['text'] && cached['request_id']==data['request_id']
+      result=DescriptionImport.for_apply(data['text'],allow_partial:data['allow_partial'],acknowledged_features:data['acknowledged_features'])
+      @description_draft=true
+      @dialog.execute_script("applyDescriptionDraft(#{result['parameters'].to_json},#{result['unsupported_features'].to_json});")
+    rescue => e
+      report_error(e)
+    end
+    def leave_description_draft
+      @description_draft=false
+      @dialog.execute_script('leaveDescriptionDraft();') if dialog_visible?
+      send_params_to_ui(default_params.merge('__target_pid'=>nil,'__model_guid'=>nil)) unless find_cabinet_instance
+      sync_current_selection
     end
     def builtin_presets
       {
@@ -194,6 +221,7 @@ module VGD_Cabinet
         @dialog.bring_to_front; sync_current_selection; return
       end
       @dialog=UI::HtmlDialog.new(dialog_title:"VGD_Cabinet #{VERSION} — Dựng hình",preferences_key:'VGD_Cabinet.Modeling43Menu',scrollable:false,resizable:true,width:560,height:680,min_width:480,min_height:460,style:UI::HtmlDialog::STYLE_DIALOG)
+      @description_draft=false; @description_preview=nil
       @dialog.set_html(UIRenderer.render(default_params,presets,default_params))
       @observed_model=Sketchup.active_model; @observer=CabinetSelectionObserver.new
       @observed_model.selection.add_observer(@observer)
@@ -202,13 +230,18 @@ module VGD_Cabinet
         observed_model.selection.remove_observer(observer) rescue nil
         if @dialog.equal?(current_dialog)
           @dialog=nil; @observed_model=nil; @observer=nil
+          @description_draft=false; @description_preview=nil
         end
       end
       @dialog.add_action_callback('ready') do
+        @dialog.execute_script("receiveDescriptionContract(#{DescriptionImport.contract.to_json});")
         sync_current_selection
         @dialog.execute_script("showModelStatus(#{@preset_migration_warning.to_json},true);") if @preset_migration_warning
       end
       @dialog.add_action_callback('create_cabinet') { |_,p| create_new_cabinet(p) }
+      @dialog.add_action_callback('preview_description') { |_,data| preview_description(data) }
+      @dialog.add_action_callback('apply_description') { |_,data| apply_description(data) }
+      @dialog.add_action_callback('leave_description_draft') { |_,_| leave_description_draft }
       @dialog.add_action_callback('update_cabinet') { |_,p| update_selected_cabinet(p) }
       @dialog.add_action_callback('draw_cabinet_tool') do |_,p|
         begin

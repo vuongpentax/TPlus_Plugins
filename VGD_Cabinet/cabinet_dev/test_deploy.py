@@ -18,7 +18,7 @@ with tempfile.TemporaryDirectory(prefix='deploy_fixture_',dir=outputs) as direct
     assert legacy.read_bytes()==previous and not (plugins/'vgd_cabinet.rb').exists()
     result=deploy(); assert result.returncode==0,result.stderr
     assert not legacy.exists()
-    files=['vgd_cabinet.rb']+['VGD_Cabinet/'+n for n in ['main43.rb','geometry_engine.rb','modeling_rules.rb','modeling.rb','pano.rb','preset_store.rb','defaults.rb','draw_tool.rb','ui_renderer.rb','VGD_Cabinet_UI.html','utilities.rb','reload.rb','combine.svg','untag.svg','logo.svg','HUONG_DAN.txt']]
+    files=['vgd_cabinet.rb']+['VGD_Cabinet/'+n for n in ['main43.rb','geometry_engine.rb','modeling_rules.rb','modeling.rb','pano.rb','preset_store.rb','description_import.rb','defaults.rb','draw_tool.rb','ui_renderer.rb','VGD_Cabinet_UI.html','utilities.rb','reload.rb','combine.svg','untag.svg','logo.svg','HUONG_DAN.txt']]
     for name in files: assert (plugins/name).read_bytes()==(root/'cabinet_work'/name).read_bytes(),name
     reports=[json.loads(p.read_text(encoding='utf-8-sig')) for p in outputs.glob('install_*/INSTALL_REPORT.json')]
     receipt=next(r for r in reports if r['Target']==str(plugins))
@@ -32,4 +32,4 @@ with tempfile.TemporaryDirectory(prefix='deploy_fixture_',dir=outputs) as direct
     result=deploy(); assert result.returncode!=0
     assert (plugins/'vgd_cabinet.rb').read_bytes()==b'FOREIGN VGD LOADER'
     assert other.read_bytes()==b'DIM MUST NOT CHANGE' and data.read_bytes()==b'USER PRESETS MUST NOT CHANGE'
-print('PASS: Cabinet deploy dry-run, 17 files, legacy backup/retirement, repeat, foreign-loader guards, other plugins and user preset data untouched')
+print('PASS: Cabinet deploy dry-run, 18 files, legacy backup/retirement, repeat, foreign-loader guards, other plugins and user preset data untouched')

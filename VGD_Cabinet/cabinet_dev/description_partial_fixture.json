@@ -1,0 +1,37 @@
+{
+  "format": "VGD_CABINET_DESCRIPTION",
+  "schema_version": 1,
+  "units": "mm",
+  "parameters": {
+    "w": 2200,
+    "d": 600,
+    "h": 2700,
+    "door_style": "Ván phẳng",
+    "opt_door": "Cánh Phủ toàn bộ",
+    "door_count": 4,
+    "auto_door_count": false,
+    "is_overheight": true,
+    "auto_overheight": false,
+    "h_bottom": 2100,
+    "h_top": 560,
+    "overheight_join": "Xà Dưới",
+    "opt_left_side": "Vuông",
+    "opt_right_side": "Vuông",
+    "module_mode": "Chung vách",
+    "opt_drawer": "Không"
+  },
+  "assumptions": [
+    "Kích thước phủ bì toàn hệ theo yêu cầu: rộng 2200 mm, sâu 600 mm, cao 2700 mm.",
+    "Phần tủ áo chính dùng cánh ván phẳng phủ toàn bộ, kiểu cánh phẳng không móc tay vát.",
+    "Ảnh thể hiện khoảng 4 cánh đứng ở phần tủ áo chính; số cánh được ước lượng từ hình và cần kiểm tra lại theo bố trí thực tế.",
+    "Tủ cao 2700 mm nên giả định chia phần dưới khoảng 2100 mm và khoang tủ trên khoảng 560 mm, phần còn lại thuộc chân/kết cấu ghép.",
+    "Kết cấu khuất, chiều dày ván, hậu và chân dùng mặc định VGD; cần kiểm tra trước sản xuất."
+  ],
+  "estimated_fields": ["door_count", "h_bottom", "h_top", "opt_door", "is_overheight", "overheight_join"],
+  "unsupported_features": [
+    "Khoang kệ mở bên trái có biên dạng bo cong lớn ở đầu trên và đầu dưới không thể mô tả chính xác bằng cấu hình module chuẩn hiện tại.",
+    "Hệ trong ảnh kết hợp một khoang kệ mở bên trái với các khoang tủ có cánh bên phải; VGD_Cabinet hiện không hỗ trợ cấu hình cánh/đợt khác nhau cho từng module trong cùng một hệ.",
+    "Tay nắm núm tròn gắn trên mặt cánh chưa có thông số tương ứng trong danh sách parameters.",
+    "Khoang hở ngang sát trần phía trên toàn hệ là chi tiết kiến trúc/ốp hoàn thiện riêng, không được tạo bằng cấu hình tủ này."
+  ]
+}

@@ -11,7 +11,7 @@ const field=id=>get(id).closest('.form-group,.checkbox-row');
 const section=(title)=>el('section',{class:'settings-section'},'<h3>'+title+'</h3>');
 const details=(title,id)=>el('details',{class:'advanced',...(id?{id}:{})},'<summary>'+title+'</summary>');
 const scripts=[...d.querySelectorAll('script')];
-const header=q('.header');header.querySelector('.header-left').innerHTML='<span>VGD_CABINET <small>4.4 · beta 1</small></span>';
+const header=q('.header');header.querySelector('.header-left').innerHTML='<span>VGD_CABINET <small>4.4 · beta 2.1</small></span>';
 const preset=q('.preset-section');const save=details('Lưu / xóa mẫu tủ');save.querySelector('summary').textContent='Lưu / xóa mẫu tủ';save.append(q('.preset-row'));preset.append(save);
 save.querySelector('summary').textContent='Lưu / đổi tên / xóa mẫu tủ';
 get('preset_name').placeholder='Tên mẫu mới / tên mới';
@@ -28,6 +28,7 @@ const draw=q('[onclick="drawToolCabinet()"]');draw.textContent='Vẽ 3 điểm';
 const place=q('[onclick="placeCabinet()"]');place.removeAttribute('style');place.textContent='Đặt tủ mới';place.id='btn_place';
 d.body.replaceChildren(header);
 const context=el('div',{class:'context-bar'},'<span id="selection_mode">Tạo tủ mới</span><span id="size_summary"></span>');d.body.append(context);
+d.body.append(el('div',{id:'description_draft_notice',hidden:'',role:'status'}));
 const workspace=el('div',{class:'workspace'}),nav=el('nav',{class:'side-menu','aria-label':'Nhóm thông số'}),content=el('main',{id:'settings_content'});
 workspace.append(nav,content);d.body.append(workspace);
 const panels={};
@@ -37,6 +38,18 @@ const paths=['M3 5h18v14H3z M9 5v14 M15 5v14','M4 3h16v18H4z M4 7h16 M4 17h16','
  const p=el('section',{id:'page_'+id,class:'menu-page',hidden:''},'<h2>'+title+'</h2>');panels[id]=p;content.append(p);
 });
 nav.append(el('div',{class:'menu-note'},'DỰNG HÌNH<br><span>Đơn vị: mm</span>'));
+nav.insertBefore(el('button',{type:'button',class:'menu-button','data-page':'description','aria-controls':'page_description',onclick:"selectPage('description')"},'<span>Dựng từ mô tả</span>'),nav.lastChild);
+const description=el('section',{id:'page_description',class:'menu-page',hidden:''},`<h2>Dựng từ mô tả</h2>
+<p>Gửi ảnh và rộng × sâu × cao mong muốn cho ChatGPT cùng hướng dẫn bên dưới. Dán khối JSON trả về, không dán phần giải thích. Không cần API key.</p>
+<p>Beta 2 dùng cấu tạo hiện có. Các module dùng chung thiết lập cánh, đợt và hộc; chưa hỗ trợ mỗi module một cấu tạo khác nhau.</p>
+<div class="description-actions"><button type="button" class="btn-secondary" onclick="showDescriptionPrompt()">Hướng dẫn cho ChatGPT</button><button type="button" class="btn-secondary" onclick="insertDescriptionExample()">Nạp ví dụ</button></div>
+<details id="description_prompt_box" class="advanced"><summary>Hướng dẫn · chọn toàn bộ và copy</summary><textarea id="description_prompt" readonly aria-label="Hướng dẫn cho ChatGPT"></textarea></details>
+<label for="description_text">Khối cấu hình JSON</label><textarea id="description_text" spellcheck="false" placeholder="Dán khối VGD_CABINET_DESCRIPTION…" oninput="invalidateDescriptionPreview()"></textarea>
+<div class="description-actions"><button type="button" id="btn_description_check" onclick="checkDescription()">Kiểm tra</button><button type="button" id="btn_description_apply" onclick="applyDescription()" disabled>Áp dụng cho tủ mới</button><button type="button" id="btn_description_partial" onclick="applyDescription(true)" hidden disabled>Dựng phần được hỗ trợ</button></div>
+<div id="description_review" role="status" aria-live="polite"></div>
+<button type="button" id="btn_description_leave" class="btn-secondary" onclick="returnToSelectedCabinet()" hidden>Trở lại tủ đang chọn</button>
+<p>Nhập chỉ đổi bản nháp. Không tự dựng, không cập nhật tủ đang chọn, không tự lưu mẫu. Kiểm tra các giá trị ước lượng trước khi bấm Đặt tủ mới.</p>`);
+content.append(description);
 const tabs=(parent,group,items)=>{const bar=el('div',{class:'subnav','aria-label':'Mục '+group});parent.append(bar);const out={};items.forEach(([id,title],i)=>{bar.append(el('button',{type:'button','data-subgroup':group,'data-subtab':id,onclick:"selectSubpage('"+group+"','"+id+"')",'aria-controls':'sub_'+group+'_'+id},title));const p=el('div',{id:'sub_'+group+'_'+id,'data-subpanel':group,hidden:''});parent.append(p);out[id]=p});return out};
 panels.general.append(preset);
 const dimensions=section('Kích thước phủ bì');dimensions.append(dim);panels.general.append(dimensions);
@@ -106,7 +119,7 @@ for(const [id,value]of Object.entries(values)){
   html=html.replace(new RegExp("(getNumValue\\('"+id+"',\\s*)[0-9.]+(\\))",'g'),'$1'+value+'$2');
   html=html.replace(new RegExp('(id="'+id+'"[^>]*value=")[0-9.]+','g'),'$1'+value);
 }
-html=html.replace('VGD_Cabinet UI v4.3.0 beta','VGD Cabinet 4.4.0-beta.1');
+html=html.replace('VGD_Cabinet UI v4.3.0 beta','VGD Cabinet 4.4.0-beta.2.1');
 html=html.replace("document.getElementById('btn_update').disabled = !selectedPid;","document.getElementById('btn_update').disabled = !selectedPid;\n      document.getElementById('selection_mode').textContent = selectedPid ? 'Đang sửa tủ đã chọn' : 'Tạo tủ mới';");
 html=html.replace('        renderDrawerGapUI();\n      } finally', '        renderDrawerGapUI();\n        refreshContextUI();\n      } finally');
 html=html.replace("      initTheme();", "      initMenu();\n      initTheme();");
@@ -150,8 +163,20 @@ html=html.replace('onclick="deletePreset()"', 'onclick="deletePreset()"');
 html=html.replace(/(<button[^>]*onclick="deletePreset\(\)"[^>]*>)/,actionButtons+'$1');
 html=html.replace("if (name && currentPresets[name])", "if (name && Object.prototype.hasOwnProperty.call(currentPresets,name))");
 html=html.replace('      if (!params) return;',`      if (!params) return;
+      if (descriptionDraftParams && params.__target_pid != null) return;
       if (!params.handle_split_v1) {
         params=Object.assign({},params,{handle_split_v1:true,drawer_bevel:params.front_bevel||false,drawer_bevel_lip:params.bevel_lip===undefined?2:params.bevel_lip});
       }`);
+// Preserve imported fields without editable controls (e.g. shelf_depth_clearance).
+html=html.replace('</script>', `
+var baseGetFormData=getFormData;
+getFormData=function(){
+  var data=baseGetFormData();
+  if(descriptionDraftParams)Object.keys(descriptionDraftParams).forEach(function(k){
+    if(!document.getElementById(k))data[k]=descriptionDraftParams[k];
+  });
+  return data;
+};
+</script>`);
 fs.writeFileSync('cabinet_work/VGD_Cabinet/VGD_Cabinet_UI.html',html.replace(/[ \t]+$/gm,''));
 console.log('UI migrated; original control count:',new JSDOM(fs.readFileSync('cabinet_dev/ui_beta1.html','utf8')).window.document.querySelectorAll('input,select').length,'new:',d.querySelectorAll('input,select').length);
