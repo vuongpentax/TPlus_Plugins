@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const booleans = new Set(['isolate','transparent','section_flip','ratio_locked','date_folder']);
   let context = null, busy = false, selected = new Set(), pendingModal = null, lastPath = null;
   let transfer = null, transferSelected = new Set();
+  let dragging = null, dropMarker = null, dragY = 0, scrollFrame = null, navigationId = null;
   const primaryActions = {views:$('generate'),sections:$('section'),export:$('exportButton')};
   Object.values(primaryActions).forEach(button => $('primarySlot').append(button));
   Object.entries(primaryActions).forEach(([name,button]) => {button.hidden=name!=='views';});
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-needs-scenes]').forEach(button => { button.disabled = !context || busy || selected.size === 0; });
     $('update').disabled = !context || busy || selected.size === 0 || context.scenes.some(scene => selected.has(scene.id) && !scene.owned);
     $('selectedCount').textContent = selected.size + ' đã chọn';
-    $('exportSelection').textContent = selected.size ? selected.size + ' scene đã chọn · Xuất theo thứ tự trong model.' : 'Chưa chọn scene. Đánh dấu trong mục Scene.';
+    $('exportSelection').textContent = selected.size ? selected.size + ' scene đã chọn · Xuất theo thứ tự trong bảng VGD.' : 'Chưa chọn scene. Đánh dấu trong mục Scene.';
     $('cancel').hidden = !busy;
     $('openFolder').hidden = !lastPath || busy;
     document.querySelectorAll('#sceneList input').forEach(input => { input.disabled = busy; });
@@ -39,6 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     $('saveScenes').disabled = !context || busy || ($('sceneScope').value === 'all' ? !context.scenes.length : !selected.size);
     $('transferApply').disabled = !context || busy || !transfer || !transferSelected.size;
     document.querySelectorAll('#transferList input').forEach(input => { input.disabled = busy; });
+    document.querySelectorAll('.scene-grip').forEach(button => { button.disabled = !context || busy || !!context.editing; button.draggable = !button.disabled; });
+    $('cameraApply').disabled = !context || busy || context.editing || !context.camera || !context.camera.supported;
+    $('removeAllFrames').disabled = !context || busy || context.editing || !(context.frame_cleanup && context.frame_cleanup.count || context.frame_active);
+    $('restoreAllFrames').disabled = !context || busy || context.editing || !(context.frame_cleanup && context.frame_cleanup.restore);
   }
   function send(action, extra = {}, lock = true) {
     if (!context || (busy && !['cancel','refresh'].includes(action))) return;
@@ -85,20 +90,77 @@ document.addEventListener('DOMContentLoaded', () => {
     $('transferModal').hidden = false; renderTransfer(); $('transferMode').focus();
   }
   function render() {
-    const list = $('sceneList'); list.replaceChildren(); const scenes = filtered();
+    const list = $('sceneList'), active = document.activeElement;
+    const focusedRow = active && active.closest('.scene-row');
+    const focusedId = focusedRow && focusedRow.dataset.id;
+    const focusedIndex = focusedRow ? [...focusedRow.children].indexOf(active) : -1;
+    list.replaceChildren(); const scenes = filtered();
     if (!scenes.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = context && context.scenes.length ? 'Không có scene khớp bộ lọc.' : 'Chưa có scene. Tạo ở mục Góc nhìn hoặc Mặt cắt.'; list.append(empty); }
     for (const scene of scenes) {
-      const row = document.createElement('div'); row.className = 'scene-row' + (scene.selected ? ' current' : '');
+      const row = document.createElement('div'); row.className = 'scene-row' + (scene.selected ? ' current' : ''); row.dataset.id = scene.id;
       const check = document.createElement('input'); check.type = 'checkbox'; check.checked = selected.has(scene.id); check.setAttribute('aria-label','Chọn ' + scene.name);
       check.addEventListener('change', () => { check.checked ? selected.add(scene.id) : selected.delete(scene.id); enable(); });
-      const name = document.createElement('button'); name.className = 'scene-name'; name.textContent = scene.name; name.title = scene.name; name.addEventListener('click', () => send('visit',{id:scene.id}));
+      const name = document.createElement('button'); name.className = 'scene-name'; name.textContent = scene.name; name.title = scene.name; name.addEventListener('click', () => { navigationId = scene.id; list.focus({preventScroll:true}); send('visit',{id:scene.id}); });
       const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = scene.owned ? (scene.kind === 'SECTION' ? 'VGD · Cắt' : 'VGD') : scene.imported ? 'VGD · Nhập' : 'Scene';
       const rename = document.createElement('button'); rename.className = 'row-action'; rename.textContent = 'Tên'; rename.title = 'Đổi tên scene'; rename.addEventListener('click', () => modal('Đổi tên scene',scene.name,() => send('rename',{id:scene.id,name:$('renameInput').value.trim()}),scene.name));
       const capture = document.createElement('button'); capture.className = 'row-action'; capture.textContent = 'Lưu view'; capture.title = 'Cập nhật scene bằng góc nhìn hiện tại'; capture.addEventListener('click', () => modal('Lưu góc nhìn hiện tại','Cập nhật camera, visibility và mặt cắt hiện tại vào “' + scene.name + '”?',() => send('capture',{id:scene.id})));
-      row.append(check,name,badge,rename,capture); list.append(row);
+      const grip = document.createElement('button'); grip.className = 'scene-grip'; grip.title = 'Kéo để sắp xếp bảng VGD'; grip.setAttribute('aria-label','Sắp xếp ' + scene.name);
+      for (let i=0;i<3;i++) grip.append(document.createElement('span'));
+      grip.addEventListener('dragstart',event => {
+        if (busy || context.editing) { event.preventDefault(); return; }
+        dragging = { id:scene.id, model:context.model, order:context.scenes.map(item=>item.id), before:scene.id };
+        event.dataTransfer.setData('text/plain',scene.id); event.dataTransfer.effectAllowed = 'move'; row.classList.add('dragging');
+        dragY = event.clientY; scrollFrame = requestAnimationFrame(scrollDrag);
+      });
+      grip.addEventListener('dragend',finishDrag);
+      row.append(check,name,badge,rename,capture,grip); list.append(row);
+      if (focusedId === scene.id && focusedIndex >= 0) row.children[focusedIndex].focus({preventScroll:true});
     }
     enable();
   }
+  function finishDrag() {
+    dragging = null;
+    if (scrollFrame !== null) cancelAnimationFrame(scrollFrame); scrollFrame = null;
+    if (dropMarker) { dropMarker.classList.remove('drop-before','drop-after'); dropMarker = null; }
+    document.querySelectorAll('.scene-row.dragging').forEach(row=>row.classList.remove('dragging'));
+  }
+  function scrollDrag() {
+    if (!dragging) return;
+    const pane = document.querySelector('main'), rect = pane.getBoundingClientRect();
+    if (dragY < rect.top+38) pane.scrollTop -= 10;
+    else if (dragY > rect.bottom-38) pane.scrollTop += 10;
+    scrollFrame = requestAnimationFrame(scrollDrag);
+  }
+  $('sceneList').addEventListener('dragover',event => {
+    if (!dragging || busy || dragging.model !== context.model) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = 'move'; dragY = event.clientY;
+    if (dropMarker) dropMarker.classList.remove('drop-before','drop-after');
+    const row = event.target.closest('.scene-row'); dropMarker = row;
+    if (!row) { dragging.before = null; return; }
+    const rect = row.getBoundingClientRect(), after = event.clientY > rect.top+rect.height/2;
+    const index = context.scenes.findIndex(scene=>scene.id===row.dataset.id);
+    dragging.before = after ? (context.scenes[index+1] ? context.scenes[index+1].id : null) : row.dataset.id;
+    row.classList.add(after?'drop-after':'drop-before');
+  });
+  $('sceneList').addEventListener('drop',event => {
+    if (!dragging) return;
+    event.preventDefault(); const action = dragging; finishDrag();
+    if (context.model !== action.model || busy) return;
+    $('sceneList').focus({preventScroll:true});
+    send('reorder',{id:action.id,before:action.before,order:action.order});
+  });
+  function cameraMode() { const floor = $('cameraMode').value === 'floor'; $('cameraAbsolute').hidden = floor; $('cameraFloorFields').hidden = !floor; }
+  function applyCamera() {
+    try {
+      const mode = $('cameraMode').value, keys = mode === 'floor' ? ['cameraFloor','cameraHeight'] : ['cameraZ'];
+      if (keys.some(key=>$(key).value.trim()==='' || !Number.isFinite(Number($(key).value)))) throw Error('Nhập cao độ camera bằng số hữu hạn.');
+      if (mode === 'floor' && Number($('cameraHeight').value)<0) throw Error('Eye Height cần lớn hơn hoặc bằng 0.');
+      send('cameraElevation',{camera:{mode,z:Number($('cameraZ').value),floor:Number($('cameraFloor').value),height:Number($('cameraHeight').value),keep_direction:$('cameraKeep').checked}});
+    } catch(error) { status(error.message,true); }
+  }
+  $('cameraMode').addEventListener('change',cameraMode);
+  $('cameraApply').addEventListener('click',applyCamera);
+  ['cameraZ','cameraFloor','cameraHeight'].forEach(key=>$(key).addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();applyCamera();}}));
   function showFormat() { const isPng = $('format').value === 'png'; $('transparent').disabled = !isPng; $('transparentLabel').style.opacity = isPng ? '1' : '.45'; $('alphaHint').hidden = !isPng; $('paperLabel').hidden = $('format').value !== 'pdf'; }
   function frameStatus(frameActive, gridActive) {
     $('toggleFrame').setAttribute('aria-pressed',String(frameActive)); $('toggleFrame').textContent = frameActive ? 'Tắt khung' : 'Bật khung';
@@ -111,6 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.VGDScenes = { receive(event, data) {
     if (event === 'state' && data && Array.isArray(data.scenes)) {
+      if (dragging) {
+        if (dragging.model === data.model && JSON.stringify(dragging.order) === JSON.stringify(data.scenes.map(scene=>scene.id)) && !data.busy && !data.editing) return;
+        finishDrag();
+      }
       const changed = !context || context.model !== data.model;
       const currentId = value => value && value.scenes.find(scene => scene.selected)?.id;
       const frameChanged = changed || currentId(context) !== currentId(data);
@@ -120,13 +186,20 @@ document.addEventListener('DOMContentLoaded', () => {
         ['width','height','margin'].forEach(key => { $(key).value = data.current_frame[key]; });
       }
       if (frameChanged) syncRatio();
+      if (frameChanged) navigationId = currentId(data) || null;
+      if (changed) { $('cameraMode').value = 'absolute'; $('cameraFloor').value = '0'; $('cameraHeight').value = '1500'; $('cameraKeep').checked = true; }
+      if (frameChanged && data.camera) $('cameraZ').value = Math.round(data.camera.eye_z_mm*100)/100;
+      if (data.camera) $('cameraCurrent').textContent = 'Z mắt hiện tại: ' + (Math.round(data.camera.eye_z_mm*100)/100).toLocaleString('vi-VN') + ' mm' + (data.camera.supported ? '' : ' · Hai điểm / Match Photo chưa hỗ trợ');
+      cameraMode();
       $('selection').textContent = data.selection ? data.selection + ' đối tượng đang chọn' + (data.editing ? ' · đang edit group' : '') : 'Chọn Group / Component trong model';
       $('modelTitle').textContent = data.title; $('sceneCount').textContent = String(data.scenes.length);
+      $('frameCleanupCount').textContent = (data.frame_cleanup ? data.frame_cleanup.count : 0) + ' scene đang khóa khung camera';
       $('customNormal').hidden = $('section_axis').value !== 'CUSTOM'; $('sectionSlider').value = $('section_percent').value;
       frameStatus(!!data.frame_active, !!data.grid_active); lockStatus(); showFormat(); render(); showTransfer(data.transfer);
     } else if (event === 'frame' && data) { frameStatus(!!data.frame_active, !!data.grid_active);
     } else if (event === 'result') {
       busy = false; status(data && data.message, !(data && (data.success || data.cancelled)));
+      if (!(data && data.success)) navigationId = context && (context.scenes.find(scene=>scene.selected) || {}).id || null;
       if (data && data.ids) selected = new Set(data.ids);
       enable();
     } else if (event === 'started') {
@@ -211,9 +284,23 @@ document.addEventListener('DOMContentLoaded', () => {
     syncRatio(!$('ratio_locked').checked);
   }));
   $('modalCancel').addEventListener('click',closeModal); $('modalConfirm').addEventListener('click', () => { const action = pendingModal; if (action) action(); closeModal(); });
-  document.addEventListener('keydown',event => { if (event.key === 'Escape') { closeModal(); if (!$('transferModal').hidden && !busy) $('transferCancel').click(); } if (event.key === 'Enter' && !$('modal').hidden && document.activeElement === $('renameInput')) $('modalConfirm').click(); });
+  document.addEventListener('keydown',event => {
+    if (event.key === 'Escape') { finishDrag(); closeModal(); if (!$('transferModal').hidden && !busy) $('transferCancel').click(); }
+    if (event.key === 'Enter' && !$('modal').hidden && document.activeElement === $('renameInput')) $('modalConfirm').click();
+    const active = document.activeElement;
+    if (!['ArrowUp','ArrowDown'].includes(event.key) || !context || busy || dragging || context.editing || !$('modal').hidden || !$('transferModal').hidden || !$('sceneList').contains(active) || active.matches('input,select,textarea,[contenteditable]') || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    const scenes = filtered(); if (!scenes.length) return;
+    let index = scenes.findIndex(scene=>scene.id===(navigationId || (context.scenes.find(item=>item.selected) || {}).id));
+    index = index<0 ? (event.key==='ArrowDown'?0:scenes.length-1) : Math.max(0,Math.min(scenes.length-1,index+(event.key==='ArrowDown'?1:-1)));
+    event.preventDefault(); if (scenes[index].id === navigationId) return;
+    navigationId = scenes[index].id; $('sceneList').focus({preventScroll:true});
+    send('visit',{id:navigationId});
+    const row = [...$('sceneList').children].find(item=>item.dataset.id===navigationId); if(row) row.scrollIntoView({block:'nearest'});
+  });
+  $('removeAllFrames').addEventListener('click', () => modal('Bỏ khung xám để gửi SKP','Bỏ khung xám của tất cả ' + context.frame_cleanup.count + ' scene có khung trong model và view hiện tại, kể cả scene ngoài VGD. Giữ kích thước xuất VGD đã lưu; khung nhìn theo cửa sổ SketchUp. Sau đó lưu SKP để gửi. Có thể dùng Khôi phục khung nếu cần.',()=>send('removeAllFrames')));
+  $('restoreAllFrames').addEventListener('click', () => send('restoreAllFrames'));
   $('theme').addEventListener('click', () => { document.body.classList.toggle('dark'); try { localStorage.setItem('VGD.Scenes.Theme',document.body.classList.contains('dark')?'dark':'light'); } catch (_) {} });
-  enable(); showFormat();
+  enable(); showFormat(); cameraMode();
   if (window.sketchup) window.sketchup.ready();
-  setInterval(() => { if (context && !busy && $('modal').hidden && window.sketchup) send('refresh',{},false); },2000);
+  setInterval(() => { if (context && !busy && !dragging && $('modal').hidden && window.sketchup) send('refresh',{},false); },2000);
 });

@@ -17,11 +17,46 @@ module VGD
       end
 
       def self.list(model)
-        model.pages.map do |page|
+        ordered(model).map do |page|
           source = owned?(page) ? metadata(page) : {}
           { id: page.persistent_id.to_s, name: page.name, owned: owned?(page), imported: !page.get_attribute(DICT, 'transfer_origin').nil?,
             kind: source['kind'], selected: page == model.pages.selected_page }
         end
+      end
+
+      def self.ordered(model)
+        pages = model.pages.to_a
+        saved = JSON.parse(model.get_attribute(DICT, 'scene_order', '[]'))
+        return pages unless saved.is_a?(Array) && saved.all? { |id| id.is_a?(String) } && saved.uniq.length == saved.length
+        ranks = {}; saved.each_with_index { |id, i| ranks[id] = i }
+        pages.each_with_index.sort_by { |page, i| [ranks.fetch(page.persistent_id.to_s, saved.length + i), i] }.map(&:first)
+      rescue JSON::ParserError, TypeError
+        pages
+      end
+
+      def self.reorder(model, id, before_id, expected_ids)
+        raise 'Đóng edit Group/Component trước khi sắp xếp scene.' if model.active_path
+        original = ordered(model)
+        ids = original.map { |page| page.persistent_id.to_s }
+        raise ArgumentError, 'Thứ tự scene đã đổi. Làm mới rồi kéo lại.' unless Array(expected_ids).map(&:to_s) == ids
+        page = find(model, id)
+        raise ArgumentError, 'Vị trí thả scene không hợp lệ.' if before_id && !ids.include?(before_id.to_s)
+        return { success: true, message: 'Thứ tự scene giữ nguyên.' } if before_id.to_s == id.to_s
+        target = original.reject { |item| item == page }
+        index = before_id.nil? ? target.length : target.index { |item| item.persistent_id.to_s == before_id.to_s }
+        target.insert(index, page)
+        return { success: true, message: 'Thứ tự scene giữ nguyên.' } if target == original
+        previous = model.get_attribute(DICT, 'scene_order')
+        Scenes.operation(model, 'Sắp xếp bảng scene VGD') do
+          begin
+            model.set_attribute(DICT, 'scene_order', target.map { |item| item.persistent_id.to_s }.to_json)
+            raise 'Chưa lưu được thứ tự scene.' unless ordered(model) == target
+          rescue StandardError => error
+            previous.nil? ? model.delete_attribute(DICT, 'scene_order') : model.set_attribute(DICT, 'scene_order', previous)
+            raise error
+          end
+        end
+        { success: true, message: 'Đã lưu thứ tự bảng VGD. Xuất ảnh/PDF/JSON theo thứ tự này; scene SketchUp giữ nguyên.' }
       end
 
       def self.name(options, target, kind, index)

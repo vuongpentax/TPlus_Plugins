@@ -7,15 +7,16 @@ require_relative 'scenes'
 require_relative 'frame'
 require_relative 'export'
 require_relative 'transfer'
+require_relative 'camera'
 module VGD
   module Scenes
-    VERSION = '1.1.0'.freeze unless const_defined?(:VERSION, false)
+    VERSION = '1.2.1'.freeze unless const_defined?(:VERSION, false)
     class << self
       def state
         model = Sketchup.active_model
         { model: model.object_id.to_s, title: model.title.empty? ? 'Model chưa lưu' : model.title,
           selection: model.selection.count { |e| Geometry.instance?(e) }, editing: !model.active_path.nil?,
-          scenes: SceneStore.list(model), settings: settings(model),
+          scenes: SceneStore.list(model), settings: settings(model), camera: CameraControl.state(model), frame_cleanup: SceneFrame.cleanup_state(model),
           current_frame: model.pages.selected_page ? SceneFrame.read(model.pages.selected_page, settings(model)) : SceneFrame.from_camera(model.active_view.camera, settings(model)),
           frame_active: model.active_view.camera.aspect_ratio > 0, grid_active: FrameTool.active?, busy: !@job.nil?,
           transfer: @transfer_pending && @transfer_pending[:model].equal?(model) ? @transfer_pending[:preview] : nil }
@@ -50,6 +51,10 @@ module VGD
                  when 'capture' then SceneStore.capture(model, data['id'])
                  when 'update' then SceneStore.update_sources(model, data['ids'])
                  when 'delete' then SceneStore.delete(model, data['ids'])
+                 when 'reorder' then SceneStore.reorder(model, data['id'], data['before'], data['order'])
+                 when 'cameraElevation' then CameraControl.elevation(model, data['camera'])
+                 when 'removeAllFrames' then SceneFrame.cleanup(model)
+                 when 'restoreAllFrames' then SceneFrame.cleanup(model, true)
                  when 'copyScenes', 'saveScenes' then transfer_export(model, data, action == 'copyScenes')
                  when 'pasteScenes', 'loadScenes' then transfer_load(model, action == 'pasteScenes')
                  when 'cancelTransfer'
@@ -103,8 +108,8 @@ module VGD
         ids = Array(data['ids']).uniq
         raise ArgumentError, 'Đánh dấu ít nhất một scene để xuất.' if ids.empty?
         raise ArgumentError, 'Đóng chế độ edit Group/Component trước khi xuất.' if model.active_path
-        # Export follows the visible/model scene order, not selection checkbox order.
-        pages = model.pages.select { |p| ids.include?(p.persistent_id.to_s) }
+        # VGD order is independent of native scene tabs and checkbox click order.
+        pages = SceneStore.ordered(model).select { |p| ids.include?(p.persistent_id.to_s) }
         raise ArgumentError, 'Danh sách scene đã thay đổi. Làm mới và chọn lại.' unless pages.length == ids.length
         pages.each do |page|
           export_dimensions(SceneFrame.read(page, opts), opts['export_scale'])
@@ -235,6 +240,24 @@ module VGD
         { success: false, message: e.message }
       end
 
+      def cleanup_frames_command(restore = false)
+        raise 'Đang xuất, hãy chờ hoàn tất trước khi đổi khung scene.' if @job
+        model = Sketchup.active_model
+        raise 'Đóng edit Group/Component trước khi đổi khung scene.' if model.active_path
+        if !restore
+          count = SceneFrame.cleanup_state(model)[:count]
+          question = "Bỏ khung xám của tất cả #{count} scene có khung trong model và view hiện tại?\nÁp dụng cả scene ngoài VGD. Giữ kích thước xuất VGD đã lưu; khung nhìn sẽ theo cửa sổ SketchUp.\nSau đó lưu SKP để gửi. Có lệnh Khôi phục khung nếu cần."
+          return { success: false, cancelled: true, message: 'Đã hủy bỏ khung scene.' } unless ::UI.messagebox(question, MB_YESNO) == IDYES
+        end
+        result = SceneFrame.cleanup(model, restore)
+        Sketchup.status_text = "[VGD] #{result[:message]}"
+        send_event('result', result); send_event('state', state)
+        result
+      rescue StandardError => error
+        ::UI.messagebox("VGD Scenes\n#{error.message}")
+        { success: false, message: error.message }
+      end
+
       def initialize_ui
         return if @initialized
         menu = ::UI.menu('Extensions').add_submenu('VGD Scenes')
@@ -268,6 +291,8 @@ module VGD
         menu.add_item(copy_command); menu.add_item(paste_command)
         menu.add_item('VGD · Xuất toàn bộ góc scene ra JSON') { transfer_command('saveScenes') }
         menu.add_item('VGD · Nhập góc scene từ JSON') { transfer_command('loadScenes') }
+        menu.add_item('VGD · Bỏ khung xám tất cả scene để gửi SKP') { cleanup_frames_command }
+        menu.add_item('VGD · Khôi phục khung scene đã bỏ') { cleanup_frames_command(true) }
         menu.add_item('Hiện thanh công cụ VGD Scenes') { @toolbar.show }
         @initialized = true
       end

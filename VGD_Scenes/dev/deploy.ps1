@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $project = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $pluginRoot = [IO.Path]::GetFullPath($PluginRoot).TrimEnd('\')
 $runtime = Join-Path $project 'runtime'
-$owned = @('vgd_scenes.rb','vgd_scenes\utils.rb','vgd_scenes\geometry.rb','vgd_scenes\scenes.rb','vgd_scenes\frame.rb','vgd_scenes\export.rb','vgd_scenes\main.rb','vgd_scenes\dialog.html','vgd_scenes\dialog.css','vgd_scenes\dialog.js','vgd_scenes\icon.svg','vgd_scenes\quick_views.svg','vgd_scenes\update_view.svg','vgd_scenes\transfer.rb','vgd_scenes\copy_scene.svg','vgd_scenes\paste_scene.svg')
+$owned = @('vgd_scenes.rb','vgd_scenes\utils.rb','vgd_scenes\geometry.rb','vgd_scenes\scenes.rb','vgd_scenes\frame.rb','vgd_scenes\export.rb','vgd_scenes\main.rb','vgd_scenes\dialog.html','vgd_scenes\dialog.css','vgd_scenes\dialog.js','vgd_scenes\icon.svg','vgd_scenes\quick_views.svg','vgd_scenes\update_view.svg','vgd_scenes\transfer.rb','vgd_scenes\copy_scene.svg','vgd_scenes\paste_scene.svg','vgd_scenes\camera.rb')
 $legacy = Join-Path $pluginRoot 'tplus_scenes_to_layout.rb'
 $retired = Join-Path $pluginRoot 'tplus_scenes_to_layout.rb.vgd-disabled'
 function Assert-Target([string]$path) {
@@ -41,7 +41,7 @@ if ($RetireLegacy -and (Test-Path -LiteralPath $legacy)) {
   if ((Get-FileHash -LiteralPath $legacy).Hash -ne $reviewedHash) { throw 'Old loader differs from reviewed version; do not retire automatically.' }
   if (Test-Path -LiteralPath $retired) { throw 'Retired loader already exists; refuse overwrite.' }
 }
-if ($VerifyOnly) { Write-Output 'Verified: 16 exact VGD targets and reviewed legacy loader. Other plugins excluded.'; exit 0 }
+if ($VerifyOnly) { Write-Output 'Verified: 17 exact VGD targets and reviewed legacy loader. Other plugins excluded.'; exit 0 }
 $backup = Join-Path $project ('outputs\install_' + (Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
 $null = New-Item -ItemType Directory -Path $backup
 $before = Other-Hashes
@@ -71,7 +71,7 @@ try {
   }
   $after = Other-Hashes
   $changed = @(@($before.Keys + $after.Keys) | Sort-Object -Unique | Where-Object { $before[$_] -ne $after[$_] })
-  $report = [ordered]@{ installed_at=(Get-Date -Format o); plugin_root=$pluginRoot; version='1.1.0'; installed_files=$owned; other_files_checked=$before.Count; other_files_changed=$changed; legacy_loader_retired=$didRetire; backup=$backup }
+  $report = [ordered]@{ installed_at=(Get-Date -Format o); plugin_root=$pluginRoot; version='1.2.1'; installed_files=$owned; other_files_checked=$before.Count; other_files_changed=$changed; legacy_loader_retired=$didRetire; backup=$backup }
   $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $backup 'install_report.json') -Encoding utf8
   if ($changed.Count) { throw "Other plugin files changed during install: $($changed -join ', ')" }
   Write-Output ($report | ConvertTo-Json -Depth 5)

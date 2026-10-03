@@ -1,12 +1,34 @@
 # Bàn giao VGD Scenes
 
+## Thay đổi 1.2.1
+
+Đã cài SU22 lúc 18:32 +07 ngày 03/10/2026; backup `outputs/install_20261003_183241_486/`, 17 file khớp runtime, 7.994 file plugin khác hash không đổi. Chưa reload process SketchUp đang mở.
+
+Lệnh `removeAllFrames`/`restoreAllFrames`, nút trong Xuất & Khung → Gửi file SketchUp và menu riêng không cần bảng. Remove xác nhận toàn model (cả scene native), không theo filter/checkbox. Chỉ đặt aspect_ratio=0 trên Page#camera gốc, không page.update/recreate/visit scene. Live camera giữ instance đầy đủ để bảo toàn two-point/MatchPhoto. Frame size attribute giữ nguyên; own grid tool tắt sau remove. Backup tỷ lệ vào model `VGD.Scenes.v1/unlocked_camera_frames` có version/pages/view_ratio/active_id. Restore bỏ qua deleted/scene đã có ratio khác 0, không bật lưới. Rollback từng ratio/live/backup rõ ràng cho SU22–25; model operation cho SU2026. Không hứa native Undo camera ở SU22.
+
+`test_clear_frames.rb` chạy trong Ruby2.7.2 và WASM3.2 đã qua: mixed/native/two-point/unused camera, identity/lens/flags/render/cut/frame sizes, no-op/repeat, restore/new manual frames/deleted pages, export không re-lock saved pages, partial failure sau setter write rollback, edit/busy/model/menu cancel. Chromium qua confirmation scope/cancel/restore/disabled states và layout. Không có kernel test thực tế cho lệnh mới; không tự sửa model người dùng đang mở. Runtime/RBZ 1.2.1, allowlist vẫn 17 file.
+
+## Thay đổi 1.2.0
+
+Người dùng đã đổi yêu cầu: chỉ sắp xếp bảng VGD để xuất; **chưa sắp xếp thanh scene SketchUp**. Không dùng Pages#reorder, không xóa/tạo lại scene; không thêm shortcut SU. SceneStore.ordered đọc model attribute `VGD.Scenes.v1/scene_order` chứa persistent IDs. Reorder có expected-order/model/edit/busy guards, operation và rollback attribute. Main export và transfer.bundle dùng cùng thứ tự; scene mới append, scene xóa bỏ qua, rename giữ ID, JSON order hỏng fallback native.
+
+Grip cuối dòng dùng HTML drag/drop, danh sách đang lọc neo vào thứ tự đầy đủ. Poll tạm dừng khi drag; đổi model/order/busy/edit hủy drag. ↑/↓ chỉ trong list, giữ focus và theo filter; input/checkbox/modal không bị bắt phím. Native scene switch cập nhật navigation ID.
+
+`camera.rb`: Z thế giới tuyệt đối hoặc floor+eye-height mm; giữ hướng nhìn (dịch eye/target Z) hoặc giữ target. Giữ projection, aspect, FOV (quy đổi ngang/dọc khi cần) hoặc ortho height; chặn two-point/MatchPhoto/edit/invalid/busy. Đây là preview, không page.update hoặc lưu frame; dùng capture toolbar khi cần lưu.
+
+Ruby 2.7.2 DLL và WASM3.2 fixture + Chromium tests qua, bao gồm PNG/PDF/JSON private order, ID/link/native order không đổi, thêm/xóa/rename/fallback, camera projection/FOV/preview/capture/guards, pointer drag thật và filter, arrow/focus/native switch, cao độ/draft/model switch. Xem `test_order_camera.rb`. **Chưa xác nhận engine mới trong kernel SketchUp.**
+
+Cài SU22: `outputs/install_20261003_171852_481/`, 17 file riêng, 7.939 file plugin khác không đổi. Không bật toolbar, không reload process đang làm của người dùng.
+
+Clipping chưa tích hợp: `dev/CLIPPING_RESEARCH.md`, `dev/clipping_lab.rb` là mẫu riêng không thuộc RBZ. Computer Use đã khởi tạo và thử mở process mới nhưng helper báo lỗi; lần kiểm tra tiếp bị người dùng dừng bằng Esc. Không tiếp tục điều khiển UI trong lượt đó. Không khẳng định model mẫu đã dựng hoặc Near/Force đã hoạt động. Tiếp tục chỉ trên process/model rỗng riêng, bảo vệ bản vẽ thật.
+
 ## Yêu cầu người dùng
 
 Thương hiệu chính **VGD**; giao diện theo theme T+ (nâu/trắng/than, sáng/tối). Ưu tiên tạo scene đối tượng nhanh theo view cơ bản; mặt cắt tùy chỉnh; quản lý/đặt tên/xóa/update/chọn scene xuất; PNG/JPG theo scene vào folder hoặc một PDF nhiều trang; PNG nền trong suốt; frame/grid hỗ trợ camera. Mục tiêu SketchUp 2022. Nghiêm cấm ảnh hưởng plugin khác.
 
 ## Bản hiện tại
 
-Runtime 1.1.0 độc lập `VGD::Scenes`, loader `vgd_scenes.rb`, thư mục `vgd_scenes/`. Mục tiêu Windows SU2022–2026.2. Không dùng namespace TPlus, không monkey patch, không observers, không tự hiện toolbar, không phụ thuộc Node/Python hoặc Internet.
+Runtime 1.2.1 độc lập `VGD::Scenes`, loader `vgd_scenes.rb`, thư mục `vgd_scenes/`. Mục tiêu Windows SU2022–2026.2. Không dùng namespace TPlus, không monkey patch, không observers, không tự hiện toolbar, không phụ thuộc Node/Python hoặc Internet.
 
 - `utils.rb`: kiểm tra thông số, operation/Undo, filename, ViewState để phục hồi view.
 - `geometry.rb`: persistent paths, transform tích lũy/local axes, fit camera, vị trí/vector mặt cắt.
@@ -19,7 +41,7 @@ PDF là raster một ảnh mỗi trang, không phải viewport/vector có tỷ l
 
 ## Kiểm tra và việc cần tiếp tục
 
-8 file runtime Ruby đã kiểm tra cú pháp/fixture bằng Ruby WASM 3.2 và DLL Ruby 2.7.2 của SU22 (console process riêng); giao diện Chromium 640×780 và 460×540. Xem `dev/test_engine.rb`, `dev/test_transfer.rb`, `dev/test_ui.cjs`. `npm install` trong `dev` rồi `npm test`; Node20+/Chrome. Có SU22/Python: `python VGD_Scenes/dev/check_ruby27.py` từ root repo. Không xem fixture hoặc chạy DLL là bằng chứng kernel SketchUp native hoạt động.
+9 file runtime Ruby đã kiểm tra cú pháp/fixture bằng Ruby WASM 3.2 và DLL Ruby 2.7.2 của SU22 (console process riêng); giao diện Chromium 640×780 và 460×540. Xem `dev/test_engine.rb`, `dev/test_transfer.rb`, `dev/test_ui.cjs`. `npm install` trong `dev` rồi `npm test`; Node20+/Chrome. Có SU22/Python: `python VGD_Scenes/dev/check_ruby27.py` từ root repo. Không xem fixture hoặc chạy DLL là bằng chứng kernel SketchUp native hoạt động.
 
 **Ưu tiên tiếp theo: kiểm thử thực tế SU22/Ruby 2.7.2 và LayOut API.** Lần thử riêng ghi nhận SU 22.0.316/Ruby 2.7.2 nhưng guard model không rỗng đã dừng trước khi thay đổi; người dùng dừng điều khiển máy bằng Esc. Chưa có bằng chứng native tạo scene/export thành công. `dev/native_smoke.rb` chỉ được chạy ở phiên thử với model rỗng; guard từ chối model có geometry/pages hoặc path, không được bỏ guard để chạy trong bản vẽ đang làm. Có thể template SketchUp có người mẫu nên không rỗng; chuẩn bị model thử sạch bằng thao tác được phép trước khi chạy.
 
@@ -27,9 +49,9 @@ Kiểm tra camera theo đối tượng xoay/lồng/mirror, section đang active 
 
 ## Cài và phạm vi bảo vệ
 
-`dev/deploy.ps1` mặc định dùng APPDATA/SU22 và allowlist 16 file; bản khác dùng `-PluginRoot` hoặc RBZ. Có backup/rollback file VGD, hash trước/sau file khác. `-RetireLegacy` chỉ tắt đúng loader Scenes T+ có hash review, không sửa `tplus/`. Lượt đầu 1.0.0: 11 file/7.713 file khác không đổi. Lượt 1.0.5: 13 file/7.914 file khác không đổi. Báo cáo cài mới ở outputs/install_*/install_report.json; bỏ qua Git.
+`dev/deploy.ps1` mặc định dùng APPDATA/SU22 và allowlist 17 file; bản khác dùng `-PluginRoot` hoặc RBZ. Có backup/rollback file VGD, hash trước/sau file khác. `-RetireLegacy` chỉ tắt đúng loader Scenes T+ có hash review, không sửa `tplus/`. Lượt đầu 1.0.0: 11 file/7.713 file khác không đổi. Lượt 1.0.5: 13 file/7.914 file khác không đổi. Báo cáo cài mới ở outputs/install_*/install_report.json; bỏ qua Git.
 
-RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), không bọc thêm thư mục runtime. Khi runtime thay đổi, tạo lại RBZ; RBZ 1.1.0 tương ứng runtime hiện tại; các bản cũ giữ để tham khảo.
+RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), không bọc thêm thư mục runtime. Khi runtime thay đổi, tạo lại RBZ; RBZ 1.2.1 tương ứng runtime hiện tại; các bản cũ giữ để tham khảo.
 
 ## Thay đổi 1.0.1
 

@@ -25,6 +25,86 @@ module VGD
       def self.store(page, opts)
         page.set_attribute(DICT, 'frame', opts.select { |key, _| KEYS.include?(key) }.to_json)
       end
+
+      BACKUP_KEY = 'unlocked_camera_frames'.freeze
+      def self.backup(model)
+        saved = JSON.parse(model.get_attribute(DICT, BACKUP_KEY, '{}'))
+        return nil unless saved.is_a?(Hash) && saved['version'] == 1 && saved['pages'].is_a?(Hash)
+        return nil unless saved['pages'].all? { |id, ratio| id.is_a?(String) && ratio.is_a?(Numeric) && ratio.finite? && ratio > 0 }
+        return nil unless saved['view_ratio'].is_a?(Numeric) && saved['view_ratio'].finite? && saved['view_ratio'] >= 0
+        saved
+      rescue JSON::ParserError, TypeError
+        nil
+      end
+
+      def self.cleanup_state(model)
+        { count: model.pages.count { |page| page.camera && page.camera.aspect_ratio > 0 }, restore: !backup(model).nil? }
+      end
+
+      # Only mutate aspect_ratio on the native camera reference. Recreating a
+      # camera or updating the whole page would overwrite two-point/PhotoMatch
+      # properties, an unsaved live view or another extension's scene state.
+      def self.cleanup(model, restore = false)
+        raise 'Đóng edit Group/Component trước khi đổi khung các scene.' if model.active_path
+        prior = model.get_attribute(DICT, BACKUP_KEY)
+        saved = backup(model)
+        raise 'Chưa có khung để khôi phục.' if restore && !saved
+        view = model.active_view; live = view.camera; live_ratio = live.aspect_ratio
+        active_id = model.pages.selected_page && model.pages.selected_page.persistent_id.to_s
+        changes = model.pages.filter_map do |page|
+          camera = page.camera; next unless camera
+          ratio = camera.aspect_ratio; id = page.persistent_id.to_s
+          target = restore ? saved['pages'][id] : 0.0
+          next unless restore ? (target && ratio == 0.0) : ratio > 0
+          [page, camera, ratio, target]
+        end
+        target_live = if restore
+                        saved['active_id'] == active_id ? saved['view_ratio'] : saved['pages'][active_id]
+                      else
+                        0.0
+                      end
+        target_live = nil if restore && live_ratio > 0
+        if changes.empty? && (target_live.nil? || target_live == live_ratio) && !restore
+          return { success: true, message: 'Các scene và view hiện tại đã không có khung xám.' }
+        end
+        next_backup = saved || { 'version'=>1, 'pages'=>{} }
+        unless restore
+          changes.each { |page, _camera, ratio, _target| next_backup['pages'][page.persistent_id.to_s] = ratio }
+          next_backup['view_ratio'] = live_ratio; next_backup['active_id'] = active_id
+        end
+        Scenes.operation(model, restore ? 'Khôi phục khung scene VGD' : 'Bỏ khung tất cả scene để gửi SKP') do
+          begin
+            changes.each do |page, camera, _ratio, target|
+              camera.aspect_ratio = target
+              raise "Không đổi được khung của #{page.name}." unless page.camera.aspect_ratio == target
+            end
+            unless target_live.nil?
+              live.aspect_ratio = target_live; view.camera = live
+              raise 'Không đổi được khung view hiện tại.' unless view.camera.aspect_ratio == target_live
+            end
+            restore ? model.delete_attribute(DICT, BACKUP_KEY) : model.set_attribute(DICT, BACKUP_KEY, next_backup.to_json)
+          rescue StandardError => error
+            failures = []
+            changes.each do |_page, camera, ratio, _target|
+              camera.aspect_ratio = ratio if camera.aspect_ratio != ratio
+            rescue StandardError => rollback_error
+              failures << rollback_error.message
+            end
+            begin
+              live.aspect_ratio = live_ratio; view.camera = live
+              prior.nil? ? model.delete_attribute(DICT, BACKUP_KEY) : model.set_attribute(DICT, BACKUP_KEY, prior)
+            rescue StandardError => rollback_error
+              failures << rollback_error.message
+            end
+            raise "#{error.message}\nKhông phục hồi hết: #{failures.join('; ')}" unless failures.empty?
+            raise error
+          end
+        end
+        model.select_tool(nil) if !restore && FrameTool.active_for?(model)
+        view.invalidate
+        message = restore ? "Đã khôi phục khung của #{changes.length} scene. Scene đã đổi khung thủ công hoặc đã xóa được bỏ qua." : "Đã bỏ khung xám của #{changes.length} scene và view hiện tại. Hãy lưu SKP trước khi gửi. Kích thước xuất VGD đã lưu vẫn được giữ."
+        { success: true, message: message }
+      end
     end
 
     class FrameTool
@@ -34,6 +114,9 @@ module VGD
         attr_accessor :suspended
         def active?
           !@active.nil?
+        end
+        def active_for?(model)
+          @active && @active.model.equal?(model)
         end
         def attach(instance)
           @active = instance

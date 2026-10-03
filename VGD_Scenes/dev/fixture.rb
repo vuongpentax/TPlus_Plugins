@@ -105,11 +105,15 @@ module Sketchup
   class Layers < Array;def folders;[];end;end
   class Camera
     attr_accessor :eye,:target,:up,:height,:fov,:aspect_ratio
-    attr_accessor :two_point,:vertical_fov,:fail_set_once
+    attr_accessor :two_point,:vertical_fov,:fail_set_once,:fail_aspect_once
     def initialize(eye=Geom::Point3d.new(0,-100,100),target=Geom::Point3d.new(0,0,0),up=Geom::Vector3d.new(0,0,1),perspective=false)
       @eye=eye;@target=target;@up=up;@perspective=perspective;@height=80;@fov=35;@aspect_ratio=0.0
     end
     def perspective?;@perspective;end
+    def aspect_ratio=(value)
+      @aspect_ratio=value
+      if @fail_aspect_once;@fail_aspect_once=false;raise 'Simulated aspect setter failure after write';end
+    end
     def fov_is_height?;@vertical_fov != false;end
     def is_2d?;!!@two_point;end
     def perspective=(value);@perspective=value;end
@@ -193,7 +197,8 @@ module UI
   class << self
     attr_reader :toolbars
     def messages;@messages ||= [];end
-    def messagebox(message);messages << message;end
+    attr_accessor :next_confirmation
+    def messagebox(message,*buttons);messages << message;buttons.empty? ? nil : @next_confirmation;end
     attr_accessor :next_directory,:next_savepanel,:next_openpanel
     def select_directory(**_);@next_directory;end
     def savepanel(*);@next_savepanel;end

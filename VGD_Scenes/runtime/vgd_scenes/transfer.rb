@@ -101,7 +101,8 @@ module VGD
       def self.bundle(model, ids = nil)
         guard(model)
         ids = Array(ids).map(&:to_s).uniq unless ids.nil?
-        pages = ids.nil? ? model.pages.to_a : model.pages.select { |p| ids.include?(p.persistent_id.to_s) }
+        ordered = SceneStore.ordered(model)
+        pages = ids.nil? ? ordered : ordered.select { |p| ids.include?(p.persistent_id.to_s) }
         raise ArgumentError, 'Danh sách scene đã đổi. Chọn lại scene.' if ids && pages.length != ids.length
         raise ArgumentError, 'Chọn scene cần copy/xuất.' if pages.empty?
         used_ids = {}
