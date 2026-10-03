@@ -1,0 +1,43 @@
+const fs=require('fs'),path=require('path'),{pathToFileURL}=require('url');
+const {chromium}=require(process.env.VGD_PLAYWRIGHT_MODULE || 'playwright');
+const assert=(value,message)=>{if(!value)throw Error(message)};
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'msedge'});
+ try{
+  const page=await browser.newPage({viewport:{width:960,height:760}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(()=>{window.calls=[];window.sketchup=new Proxy({}, {get:(_,name)=>(...args)=>window.calls.push({name,args})})});
+  await page.goto(pathToFileURL(path.resolve(__dirname,'../runtime/vgd_bim_lite/html/index.html')).href);
+  const config={mode:'information',version:'0.1.0-alpha',categories:['furniture','electrical','finish'],units:['pcs','set','m2'],methods:['count','assembly','area'],presets:JSON.parse(fs.readFileSync(path.resolve(__dirname,'../runtime/vgd_bim_lite/config/presets.json'),'utf8'))};
+  const receive=async(event,data)=>page.evaluate(([e,d])=>window.VGD.receive(e,d),[event,data]);
+  await receive('config',config);
+  await receive('information',{count:10,fields:{category:null,item_type:'socket',description:null,unit:'pcs',quantity_method:'count',include_boq:true},objects:[{entity_type:'Component',source:'RAW',instance_name:'<img src=x onerror="window.injected=true">',definition_name:'O_CAM_DOI',tag:'ELEC',material:'',dimensions:{width:120,depth:30,height:80},status:'UNCLASSIFIED',locked:false}]});
+  assert(await page.locator('#content img').count()===0,'Unsafe entity name inserted as HTML');
+  assert(await page.locator('#field-category').isDisabled(),'Mixed field automatically writable');
+  await page.check('#update-zone');await page.fill('#field-zone','MASTER');await page.getByRole('button',{name:'APPLY',exact:true}).click();
+  let last=await page.evaluate(()=>window.calls.at(-1));
+  assert(last.name==='apply' && JSON.stringify(JSON.parse(last.args[0]))==='{"zone":"MASTER"}','Multi-edit overwrote unselected fields');
+  await page.locator('main select').first().selectOption('3');
+  assert(await page.locator('#field-category').inputValue()==='electrical'&&await page.locator('#update-description').isChecked()===false,'Preset changed unrelated fields');
+  await page.selectOption('#field-include_boq','');const beforeBoolean=await page.evaluate(()=>window.calls.length);await page.getByRole('button',{name:'APPLY',exact:true}).click();assert(await page.evaluate(()=>window.calls.length)===beforeBoolean && (await page.locator('#message').innerText()).includes('true'),'Blank boolean silently wrote false');
+  await receive('config',{...config,mode:'mapping'});
+  const row={index:0,source_type:'definition_name',source_value:'O_CAM_DOI',kind:'object',instances:28,eligible:28,protected:0,suggestion:{data:{category:'electrical',item_type:'socket',unit:'pcs',quantity_method:'count'},confidence:'HIGH',source:'HEURISTIC'}};
+  await receive('mapping',[row]);await page.getByRole('button',{name:'Edit / Apply'}).click();
+  await page.check('#update-description');await page.fill('#field-description','Ổ cắm đôi');await page.getByRole('button',{name:'Preview Convert',exact:true}).click();
+  last=await page.evaluate(()=>window.calls.at(-1));assert(last.name==='preview_convert'&&JSON.parse(last.args[0]).data.description==='Ổ cắm đôi','Preview did not preserve mapping values');
+  const before=await page.evaluate(()=>window.calls.length);
+  await receive('preview',{objects:28,occurrences:28,skipped:0,data:row.suggestion.data,rule:false,shared:false});assert(await page.locator('#preview').isVisible(),'Preview missing');
+  await page.click('#cancel-preview');assert(await page.evaluate(()=>window.calls.length)===before,'Cancel preview wrote attributes');
+  await receive('preview',{objects:28,occurrences:28,skipped:0,data:row.suggestion.data,rule:false,shared:true});await page.click('#confirm-preview');
+  last=await page.evaluate(()=>window.calls.at(-1));assert(last.name==='confirm_convert','Convert confirmation missing');
+  await receive('config',{...config,mode:'validate_model'});await receive('validation',[{index:7,status:'ERROR',instance_name:'Socket',issues:[{severity:'ERROR',message:'count requires pcs/set/lot'}]}]);await page.locator('tr.clickable').click();
+  last=await page.evaluate(()=>window.calls.at(-1));assert(last.name==='select_entity'&&last.args[0]===7,'Validation selection targets wrong index');
+  await receive('config',{...config,mode:'rules'});await receive('rules',[]);await page.fill('#rules-json','INVALID');await page.getByRole('button',{name:'Save Rules'}).click();assert(await page.locator('#message').innerText()!=='','Invalid rules JSON accepted');
+  await receive('config',{...config,mode:'information'});await receive('information',{count:0,fields:{},objects:[]});assert(await page.getByRole('button',{name:'APPLY',exact:true}).isDisabled(),'Empty selection can apply');
+  await receive('information',{count:10,fields:{category:'electrical',item_type:'socket',description:'Ổ cắm đôi',unit:'pcs',quantity_method:'count',zone:'MASTER',include_boq:true},objects:[]});
+  const output=path.resolve(__dirname,'../outputs');fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'information_light.png'),fullPage:true});
+  await page.emulateMedia({colorScheme:'dark'});await page.screenshot({path:path.join(output,'information_dark.png'),fullPage:true});
+  await page.setViewportSize({width:600,height:800});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Compact layout overflows');
+  assert(errors.length===0,errors.join('\n'));console.log('PASS: multi-edit preservation, preset scope, safe rendering, mapping preview/cancel/confirm, validation target, rule JSON, empty selection, dark/light and compact UI');
+ }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exitCode=1});

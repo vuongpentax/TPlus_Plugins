@@ -1,0 +1,9 @@
+[
+  {"name":"Wardrobe","category":"furniture","item_type":"wardrobe","unit":"set","quantity_method":"assembly","include_boq":true},
+  {"name":"Kitchen Base","category":"furniture","item_type":"kitchen_base","unit":"set","quantity_method":"assembly","include_boq":true},
+  {"name":"Kitchen Upper","category":"furniture","item_type":"kitchen_upper","unit":"set","quantity_method":"assembly","include_boq":true},
+  {"name":"Socket","category":"electrical","item_type":"socket","unit":"pcs","quantity_method":"count","include_boq":true},
+  {"name":"Switch","category":"electrical","item_type":"switch","unit":"pcs","quantity_method":"count","include_boq":true},
+  {"name":"Light","category":"electrical","item_type":"light","unit":"pcs","quantity_method":"count","include_boq":true},
+  {"name":"Wall Paint","category":"finish","item_type":"paint","unit":"m2","quantity_method":"area","include_boq":true}
+]
