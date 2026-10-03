@@ -6,9 +6,10 @@ require_relative 'geometry'
 require_relative 'scenes'
 require_relative 'frame'
 require_relative 'export'
+require_relative 'transfer'
 module VGD
   module Scenes
-    VERSION = '1.0.4'.freeze unless const_defined?(:VERSION, false)
+    VERSION = '1.1.0'.freeze unless const_defined?(:VERSION, false)
     class << self
       def state
         model = Sketchup.active_model
@@ -16,7 +17,8 @@ module VGD
           selection: model.selection.count { |e| Geometry.instance?(e) }, editing: !model.active_path.nil?,
           scenes: SceneStore.list(model), settings: settings(model),
           current_frame: model.pages.selected_page ? SceneFrame.read(model.pages.selected_page, settings(model)) : SceneFrame.from_camera(model.active_view.camera, settings(model)),
-          frame_active: model.active_view.camera.aspect_ratio > 0, grid_active: FrameTool.active?, busy: !@job.nil? }
+          frame_active: model.active_view.camera.aspect_ratio > 0, grid_active: FrameTool.active?, busy: !@job.nil?,
+          transfer: @transfer_pending && @transfer_pending[:model].equal?(model) ? @transfer_pending[:preview] : nil }
       end
 
       def send_event(event, data)
@@ -48,6 +50,18 @@ module VGD
                  when 'capture' then SceneStore.capture(model, data['id'])
                  when 'update' then SceneStore.update_sources(model, data['ids'])
                  when 'delete' then SceneStore.delete(model, data['ids'])
+                 when 'copyScenes', 'saveScenes' then transfer_export(model, data, action == 'copyScenes')
+                 when 'pasteScenes', 'loadScenes' then transfer_load(model, action == 'pasteScenes')
+                 when 'cancelTransfer'
+                   @transfer_pending = nil
+                   { success: true, cancelled: true, message: 'Đã hủy nhập scene.' }
+                 when 'applyTransfer'
+                   pending = @transfer_pending
+                   raise 'Bộ scene đã đổi hoặc model đã đổi. Paste/Nhập lại.' unless pending && pending[:model].equal?(model) && pending[:token] == data['token']
+                   expected = pending[:preview][:scenes].each_with_object({}) { |entry, hash| hash[entry[:id]] = entry[:target_id] }
+                   result = SceneTransfer.apply(model, pending[:data], data['ids'], data['mode'], expected)
+                   @transfer_pending = nil
+                   result
                  when 'visit'
                    raise 'Đóng edit Group/Component trước khi mở scene.' if model.active_path
                    model.pages.selected_page = SceneStore.find(model, data['id'])
@@ -124,6 +138,54 @@ module VGD
         @job.start
       end
 
+      def transfer_export(model, data, clipboard)
+        SceneTransfer.guard(model)
+        ids = Array(data['ids']).map(&:to_s)
+        if clipboard && ids.empty?
+          page = model.pages.selected_page
+          raise 'Chọn scene cần copy trước. Lưu view nếu vừa chỉnh camera.' unless page && page.valid?
+          ids = [page.persistent_id.to_s]
+        end
+        ids = nil if !clipboard && data['scope'] == 'all'
+        destination = clipboard ? SceneTransfer.clipboard_path : ::UI.savepanel('VGD · Xuất bộ góc scene', '', 'VGD_Scenes.vgdscenes.json')
+        return { success: false, cancelled: true, message: 'Đã hủy chọn tệp.' } unless destination
+        unless clipboard
+          destination += '.vgdscenes.json' unless destination.downcase.end_with?('.vgdscenes.json')
+          destination = available_path(File.dirname(destination), File.basename(destination, '.vgdscenes.json'), 'vgdscenes.json')
+        end
+        bundle = SceneTransfer.bundle(model, ids)
+        FileUtils.mkdir_p(File.dirname(destination)) if clipboard
+        SceneTransfer.write(destination, bundle, clipboard)
+        { success: true, message: clipboard ? "Đã copy #{bundle['scenes'].length} scene đã lưu. Mở file B và Paste scenes." : "Đã xuất #{bundle['scenes'].length} scene: #{destination}" }
+      end
+
+      def transfer_load(model, clipboard)
+        SceneTransfer.guard(model)
+        source = clipboard ? SceneTransfer.clipboard_path : ::UI.openpanel('VGD · Nhập bộ góc scene', '', 'JSON|*.vgdscenes.json;*.json||')
+        return { success: false, cancelled: true, message: 'Đã hủy chọn tệp.' } unless source
+        bundle = SceneTransfer.read(source)
+        token = SecureRandom.hex(16)
+        @transfer_pending = { model: model, data: bundle, token: token, preview: SceneTransfer.preview(model, bundle, token) }
+        { success: true, message: "Chọn scene và cách xử lý trùng trước khi nhập #{bundle['scenes'].length} góc nhìn." }
+      end
+
+      def transfer_command(action)
+        raise 'Đang xuất, hãy chờ hoàn tất.' if @job
+        result = case action
+                 when 'copyScenes' then transfer_export(Sketchup.active_model, { 'ids' => [] }, true)
+                 when 'saveScenes' then transfer_export(Sketchup.active_model, { 'scope' => 'all' }, false)
+                 else transfer_load(Sketchup.active_model, action == 'pasteScenes')
+                 end
+        open if @transfer_pending && %w[pasteScenes loadScenes].include?(action)
+        Sketchup.status_text = "[VGD] #{result[:message]}"
+        send_event('result', result)
+        send_event('state', state)
+        result
+      rescue StandardError => e
+        ::UI.messagebox("VGD Scenes\n#{e.message}")
+        { success: false, message: e.message }
+      end
+
       def open
         if @dialog && @dialog.visible?
           @dialog.bring_to_front
@@ -143,7 +205,7 @@ module VGD
             send_event('result', { success: false, message: "Dữ liệu không hợp lệ: #{e.message}" })
           end
         end
-        @dialog.set_on_closed { @dialog = nil; @job.cancel if @job }
+        @dialog.set_on_closed { @dialog = nil; @transfer_pending = nil; @job.cancel if @job }
         @dialog.show
       end
 
@@ -157,22 +219,55 @@ module VGD
         ::UI.messagebox("VGD Scenes\n#{e.message}")
       end
 
+      def capture_current_view
+        raise 'Đang xuất, hãy chờ hoàn tất trước khi cập nhật scene.' if @job
+        model = Sketchup.active_model
+        raise 'Đóng edit Group/Component trước khi cập nhật view.' if model.active_path
+        page = model.pages.selected_page
+        raise 'Chọn một scene trước, chỉnh góc nhìn rồi bấm Cập nhật view hiện tại.' unless page && page.valid?
+        result = SceneStore.capture(model, page.persistent_id.to_s)
+        Sketchup.status_text = "[VGD] #{result[:message]}"
+        send_event('result', result)
+        send_event('state', state)
+        result
+      rescue StandardError => e
+        ::UI.messagebox("VGD Scenes\n#{e.message}")
+        { success: false, message: e.message }
+      end
+
       def initialize_ui
         return if @initialized
         menu = ::UI.menu('Extensions').add_submenu('VGD Scenes')
         open_command = ::UI::Command.new('VGD Scenes · Bảng điều khiển') { open }
         quick_command = ::UI::Command.new('VGD · Tạo/cập nhật 4 view nhanh') { quick_views }
+        capture_command = ::UI::Command.new('VGD · Cập nhật view hiện tại') { capture_current_view }
+        copy_command = ::UI::Command.new('VGD · Copy scene hiện tại') { transfer_command('copyScenes') }
+        paste_command = ::UI::Command.new('VGD · Paste scenes') { transfer_command('pasteScenes') }
         [open_command, quick_command].each do |command|
           command.small_icon = File.join(__dir__, 'icon.svg')
           command.large_icon = File.join(__dir__, 'icon.svg')
         end
         quick_command.small_icon = File.join(__dir__, 'quick_views.svg')
         quick_command.large_icon = File.join(__dir__, 'quick_views.svg')
+        capture_command.small_icon = File.join(__dir__, 'update_view.svg')
+        capture_command.large_icon = File.join(__dir__, 'update_view.svg')
         open_command.tooltip = 'VGD Scenes · Tạo scene, mặt cắt, quản lý và xuất ảnh/PDF'
         quick_command.tooltip = 'VGD · 4 view nhanh: ISO, TOP, FRONT, RIGHT từ đối tượng chọn'
-        menu.add_item(open_command); menu.add_item(quick_command)
+        capture_command.tooltip = 'VGD · Lưu view hiện tại vào scene đang chọn'
+        capture_command.status_bar_text = 'Lưu camera, hiển thị, mặt cắt và khung hiện tại vào scene đang chọn.'
+        [[copy_command, 'copy_scene.svg'], [paste_command, 'paste_scene.svg']].each do |command, icon|
+          command.small_icon = File.join(__dir__, icon)
+          command.large_icon = File.join(__dir__, icon)
+        end
+        copy_command.tooltip = 'VGD · Copy camera và khung của scene đang chọn (đã lưu)'
+        paste_command.tooltip = 'VGD · Paste bộ scene từ file khác; chọn trước khi nhập'
+        menu.add_item(open_command); menu.add_item(quick_command); menu.add_item(capture_command)
         @toolbar = ::UI::Toolbar.new('VGD Scenes')
-        @toolbar.add_item(open_command); @toolbar.add_item(quick_command)
+        @toolbar.add_item(open_command); @toolbar.add_item(quick_command); @toolbar.add_item(capture_command)
+        @toolbar.add_item(copy_command); @toolbar.add_item(paste_command)
+        menu.add_item(copy_command); menu.add_item(paste_command)
+        menu.add_item('VGD · Xuất toàn bộ góc scene ra JSON') { transfer_command('saveScenes') }
+        menu.add_item('VGD · Nhập góc scene từ JSON') { transfer_command('loadScenes') }
         menu.add_item('Hiện thanh công cụ VGD Scenes') { @toolbar.show }
         @initialized = true
       end

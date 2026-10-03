@@ -3,7 +3,7 @@ require 'sketchup.rb'
 require 'extensions.rb'
 module VGD
   module Scenes
-    VERSION = '1.0.4'.freeze unless const_defined?(:VERSION, false)
+    VERSION = '1.1.0'.freeze unless const_defined?(:VERSION, false)
     unless file_loaded?(__FILE__)
       extension = SketchupExtension.new('VGD Scenes', File.join(__dir__, 'vgd_scenes', 'main'))
       extension.description = 'Tạo và quản lý scene đối tượng, mặt cắt tùy chỉnh, khung camera và xuất PNG/JPG/PDF.'

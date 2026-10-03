@@ -25,7 +25,14 @@
   <div class="inline list-actions"><button id="selectAll">Chọn đang lọc</button><button id="selectNone">Bỏ chọn hết</button><strong id="selectedCount">0 đã chọn</strong></div>
   <div id="sceneList" class="scene-list" aria-label="Danh sách scene"></div>
   <div class="inline wrap batch"><button id="update" data-needs-scenes>Cập nhật từ đối tượng</button><button id="delete" class="danger" data-needs-scenes>Xóa đã chọn</button><button id="goExport" class="primary" data-needs-scenes>Xuất đã chọn →</button></div>
-  <p class="hint">Đánh dấu scene VGD rồi bấm “Cập nhật từ đối tượng”: lấy lại vị trí, kích thước, trục và tên của đối tượng gốc; căn camera, mặt cắt theo thông số đã lưu. Không cần chọn lại đối tượng. Camera chỉnh tay sẽ bị thay; dùng “Lưu view” để giữ bố cục hiện tại. Có Undo.</p>
+  <p class="hint">Đánh dấu scene VGD rồi bấm “Cập nhật từ đối tượng”: lấy lại vị trí, kích thước, trục và tên của đối tượng gốc; căn camera, mặt cắt theo thông số đã lưu. Không cần chọn lại đối tượng. Camera chỉnh tay sẽ bị thay; dùng “Lưu view” để giữ bố cục hiện tại.</p>
+  <div class="card transfer-actions"><h2>Chuyển góc scene giữa các file</h2>
+    <div class="inline wrap"><button id="copyScenes">Copy scenes</button><button id="pasteScenes">Paste scenes</button></div>
+    <p class="hint">Copy scene đã đánh dấu; nếu chưa đánh dấu, copy scene đang mở. Copy lấy góc đã lưu: bấm Cập nhật view trước nếu vừa chỉnh camera.</p>
+    <label>Bộ cần xuất<select id="sceneScope"><option value="selected">Scene đã đánh dấu</option><option value="all">Toàn bộ scene trong model</option></select></label>
+    <div class="inline wrap"><button id="saveScenes">Xuất bộ scene…</button><button id="loadScenes">Nhập bộ scene…</button></div>
+    <p class="hint">Tệp .vgdscenes.json dùng được trên máy khác. Camera + khung hình; hai file cần cùng gốc tọa độ và hướng trục thế giới.</p>
+  </div>
 </section>
 <section id="export" class="tab" hidden>
   <h1>Xuất hình & Canh camera</h1><p id="exportSelection">Chưa chọn scene. Đánh dấu trong mục Scene.</p>
@@ -36,4 +43,12 @@
 </main>
 <footer><div id="primarySlot"></div><div id="status" role="status">Chọn đối tượng để bắt đầu.</div><div class="inline"><progress id="progress" max="1" value="0" hidden></progress><button id="cancel" class="danger" hidden>Hủy xuất</button><button id="openFolder" hidden>Mở thư mục kết quả</button></div></footer>
 <div id="modal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle"></h2><p id="modalText"></p><input id="renameInput" maxlength="180" hidden><div class="inline"><button id="modalCancel">Hủy</button><button id="modalConfirm" class="primary">Xác nhận</button></div></div></div>
+<div id="transferModal" class="modal" hidden><div class="modal-card transfer-card" role="dialog" aria-modal="true" aria-labelledby="transferTitle">
+  <h2 id="transferTitle">Nhập góc scene</h2><p id="transferSource"></p>
+  <label>Scene trùng<select id="transferMode"><option value="new">Tạo mới · giữ scene hiện có</option><option value="update">Cập nhật · khớp ID, rồi tên</option><option value="skip">Bỏ qua scene đã có</option></select></label>
+  <div class="inline list-actions"><button id="transferAll">Chọn hết</button><button id="transferNone">Bỏ chọn</button><strong id="transferCount"></strong></div>
+  <div id="transferList" class="transfer-list"></div>
+  <p class="hint">Chỉ chuyển camera và khung hình, theo tọa độ thế giới. Chưa chuyển Tags, mặt cắt, đối tượng ẩn hoặc style. Cập nhật giữ tên và thứ tự scene đích; khớp ID trước, tên chính xác sau.</p>
+  <div class="inline transfer-footer"><button id="transferCancel">Hủy</button><button id="transferApply" class="primary">Nhập scene đã chọn</button></div>
+</div></div>
 <script src="dialog.js"></script></body></html>

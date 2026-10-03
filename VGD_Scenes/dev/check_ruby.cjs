@@ -13,8 +13,9 @@ const {WASI}=require('wasi');
  const literal=value=>JSON.stringify(value).replace(/#/g,'\\#');
  for(const f of files){vm.eval('RubyVM::InstructionSequence.compile('+literal(fs.readFileSync(path.join(root,f),'utf8'))+')');console.log('Syntax OK:',f);}
  vm.eval(fs.readFileSync(path.join(__dirname,'fixture.rb'),'utf8'));
- for(const f of ['utils','geometry','scenes','frame','export','main'])vm.eval(fs.readFileSync(path.join(root,'vgd_scenes',f+'.rb'),'utf8').replace(/^require_relative[^\n]*\n/gm,'').replace(/^require 'sketchup.rb'\r?\n/gm,''));
+ for(const f of ['utils','geometry','scenes','frame','export','transfer','main'])vm.eval(fs.readFileSync(path.join(root,'vgd_scenes',f+'.rb'),'utf8').replace(/^require_relative[^\n]*\n/gm,'').replace(/^require 'sketchup.rb'\r?\n/gm,''));
  vm.eval(fs.readFileSync(path.join(__dirname,'test_engine.rb'),'utf8'));
+ vm.eval(fs.readFileSync(path.join(__dirname,'test_transfer.rb'),'utf8'));
  vm.eval('$stdout.flush');
  if(fs.readdirSync(path.join(tmpRoot,'mixed-frames')).some(name=>name.endsWith('.json')))throw Error('Unrequested report JSON emitted');
 })().catch(e=>{console.error(e);process.exitCode=1;});

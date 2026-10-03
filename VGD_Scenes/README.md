@@ -1,4 +1,4 @@
-# VGD Scenes 1.0.4 — SketchUp 2022
+# VGD Scenes 1.1.0 — SketchUp 2022–2026.2
 
 Plugin tạo view đối tượng, mặt cắt tùy chỉnh, quản lý scene và xuất ảnh/PDF. Thương hiệu VGD, giao diện sáng/tối dùng bảng màu nâu, trắng và than theo theme T+.
 
@@ -7,16 +7,45 @@ Plugin tạo view đối tượng, mặt cắt tùy chỉnh, quản lý scene v�
 - Loader: `%APPDATA%/SketchUp/SketchUp 2022/SketchUp/Plugins/vgd_scenes.rb`
 - Thư mục riêng: `.../Plugins/vgd_scenes/`
 - Loader scene T+ cũ được sao lưu và đổi thành `tplus_scenes_to_layout.rb.vgd-disabled`; chỉ có hiệu lực tắt ở lần khởi động SketchUp kế tiếp.
-- Không sửa thư mục `tplus`, plugin Cabinet/Dim hoặc bố trí toolbar khác. Đối chiếu trước/sau cài: **7.713 file khác, 0 thay đổi**.
+- Bộ cài chỉ ghi 16 file riêng của VGD Scenes. Không sửa thư mục `tplus`, plugin Cabinet/Dim hoặc bố trí toolbar khác; script đối chiếu hash tất cả file plugin khác trước/sau và lưu báo cáo trong `outputs/install_*/`.
+- Lượt cài 1.1.0 ngày 03/10/2026: 16 file khớp runtime; **7.914 file plugin khác không đổi**. Backup: `outputs/install_20261003_111743_242/`.
 - Báo cáo và bản sao loader cũ nằm trong `outputs/install_*/` trên máy đã cài, không đưa lên GitHub.
 
 Hãy lưu công việc và khởi động lại SketchUp khi thuận tiện. Mở **Extensions → VGD Scenes → VGD Scenes · Bảng điều khiển**. Nếu muốn toolbar, chọn **Hiện thanh công cụ VGD Scenes** trong menu này.
+
+### Cập nhật view bằng một nút
+
+Toolbar có năm nút: bảng điều khiển, 4 view nhanh, **Cập nhật view hiện tại**, **Copy scene hiện tại**, **Paste scenes**. Chọn scene, chỉnh camera/khung/mặt cắt rồi bấm nút thứ ba (máy ảnh/mũi tên vòng) để lưu vào scene đang chọn. Không cần mở bảng hoặc chọn đối tượng; giữ tên scene. Các lệnh cũng có trong **Extensions → VGD Scenes** để gán phím tắt.
+
+Lệnh lưu camera, hiển thị, mặt cắt và khung giống **Lưu view** trong bảng. Khi chưa có scene đang chọn, đang edit Group/Component hoặc đang xuất, lệnh báo lý do và không cập nhật.
+
+### Chuyển góc scene từ A sang B
+
+1. Trong file A, lưu view vừa chỉnh vào scene. **Copy scenes** ở mục Scene lấy các scene đã đánh dấu; nếu chưa đánh dấu thì lấy scene đang mở. Copy trên toolbar luôn lấy riêng scene đang mở.
+2. Mở file B, bấm **Paste scenes**. Chọn scene trong bảng xem trước và cách xử lý trùng: **Tạo mới** (mặc định, thêm số vào tên), **Cập nhật** hoặc **Bỏ qua**.
+3. Cập nhật khớp ID trước, rồi tên chính xác; giữ tên/thứ tự ở B. ID nguồn ổn định qua rename/Save As. Khi nhiều scene cùng khớp mà tên không phân biệt được, plugin từ chối tự chọn. Nếu scene đích đổi sau preview, Paste/Nhập lại.
+4. Mang sang máy khác: chọn **Toàn bộ scene trong model** hoặc **Scene đã đánh dấu**, bấm **Xuất bộ scene…**. Ở B dùng **Nhập bộ scene…** với tệp `.vgdscenes.json`. Tệp đã có không bị ghi đè.
+
+Chuyển camera perspective/parallel, vị trí/hướng/roll, FOV hoặc chiều cao parallel và khung width/height/margin. Camera chưa khóa tỷ lệ được cố định theo khung xuất của scene để bố cục không phụ thuộc cửa sổ máy đích. Dùng tọa độ thế giới (inch theo API), không tự căn theo đối tượng: A/B cần cùng gốc và hướng trục. Scene nhập mới chỉ lưu camera, không nhận source paths/hình học từ A. Cập nhật scene VGD sẵn có giữ nguồn của B để dùng Cập nhật từ đối tượng khi chủ động yêu cầu.
+
+Bản này chưa chuyển Tags, style, đối tượng ẩn, mặt cắt hoặc animation; cập nhật giữ thiết lập đó ở B. Từ chối hai điểm/Match Photo vì API không có setter đầy đủ để phục hồi chính xác. Giới hạn 1.000 scene/8 MB; kiểm tra JSON trước khi đổi model.
+
+Clipboard riêng ở `%APPDATA%/VGD/Scenes/scene_clipboard_v1.json`, dùng giữa các process/phiên bản SketchUp trên cùng tài khoản Windows; không dùng clipboard hệ thống. Copy/xuất lần đầu gán attribute ID riêng vào scene nguồn, nên SKP có thể hiện đã sửa; lưu SKP để giữ ID khi mở lại.
+
+### Tương thích phiên bản
+
+Mục tiêu Windows: SketchUp Desktop **2022, 2023, 2024, 2025 và 2026 đến 2026.2**; mốc hiện hành theo [release notes 2026.2](https://help.sketchup.com/en/sketchup-desktop-20262). Không dùng Overlay API hoặc clipboard API chỉ có ở bản mới, không cần thư viện native ngoài.
+
+- Đã chạy cú pháp và bộ fixture với DLL Ruby **2.7.2 đi kèm SU22** trong process console riêng và Ruby WASM **3.2**. Hai bộ kiểm tra không điều khiển SketchUp đang mở.
+- `vpwidth/vpheight` và `draw2d` dùng cùng hệ pixel trên từng phiên bản; SU2025+ đổi cả hai sang logical pixels theo [View API](https://ruby.sketchup.com/Sketchup/View.html).
+- Chỉnh scene được bọc operation cho SU2026. Với SU22–25, không đảm bảo Undo camera scene; nhập có backup camera/attribute và rollback rõ ràng khi lỗi. Khác biệt theo [Page API](https://ruby.sketchup.com/Sketchup/Page.html).
+- **Chưa chạy plugin trong kernel SketchUp thực tế trên tất cả các bản này.** Cần kiểm tra camera/mặt cắt/PNG/PDF và toolbar trên SU22 cùng các bản mới trước khi xác nhận đầy đủ.
 
 ## Cách dùng
 
 1. Chọn Group/Component. Trong **Góc nhìn**, chọn view, hệ trục theo đối tượng hoặc thế giới, gộp cụm hoặc từng đối tượng. Bấm **Tạo / Cập nhật góc nhìn**. Có ISO và sáu hướng tiêu chuẩn; lặp lại cùng đối tượng/view sẽ cập nhật scene VGD tương ứng và đổi tên tất cả scene VGD của bộ đối tượng đó theo tên mới, kể cả view không đang chọn và scene mặt cắt. Tên theo mẫu đã lưu; tên sửa tay sẽ được tạo lại khi cập nhật.
 2. Trong **Mặt cắt**, chọn X/Y/Z hoặc vector riêng; đặt vị trí theo phần trăm, dịch thêm bằng mm, đảo hướng và tên mặt cắt. Mỗi tên mặt cắt có scene riêng; chạy lại cùng tên sẽ cập nhật. Mặt cắt nằm bên trong từng Group/Component được chọn, không thêm mặt cắt ở cấp model. Component/Group dùng chung sẽ Make Unique bản chọn; với đối tượng nằm trong cha dùng chung, Make Unique cha trước. Camera luôn nhìn từ phía đã bỏ vào phần còn lại, kể cả khi đảo phía cắt.
-3. Trong **Scene**, bấm tên để mở, đánh dấu scene cần xuất, đổi tên, xóa hoặc lưu view hiện tại. **Cập nhật từ đối tượng** tính lại camera/mặt cắt và tên scene từ đối tượng nguồn bằng thông số đã lưu, không cần chọn lại đối tượng; **Lưu view** giữ bố cục bạn vừa chỉnh. Xóa/cập nhật có Undo.
+3. Trong **Scene**, bấm tên để mở, đánh dấu scene cần xuất, đổi tên, xóa hoặc lưu view hiện tại. **Cập nhật từ đối tượng** tính lại camera/mặt cắt và tên scene từ đối tượng nguồn bằng thông số đã lưu, không cần chọn lại đối tượng; **Lưu view** giữ bố cục bạn vừa chỉnh. Undo scene tùy phiên bản SketchUp; xem mục Tương thích.
 4. Trong **Xuất & Khung**, chọn preset hoặc nhập tỷ lệ rộng:cao như `3:4`. Nút **⇄** đổi ngang/dọc để xem trước. **Căn lề view hiện tại** chỉ căn và preview, giữ hướng nhìn/phối cảnh; không lưu scene. Bấm **Áp dụng khung** để lưu camera và kích thước riêng vào scene đang mở. **Bật/Tắt khung** đổi giữa khung tỷ lệ và khung nhìn đầy cửa sổ SketchUp; không đổi scene đã lưu. **Bật/Tắt lưới** độc lập, Esc tắt lưới. Sau khi Orbit/canh tay có thể dùng **Lưu view** để chủ động lưu bố cục.
 5. Đánh dấu scene và xuất PNG/JPG vào thư mục, hoặc PDF nhiều trang theo thứ tự scene trong model. Mỗi scene dùng kích thước và bố cục đã lưu riêng (ví dụ TOP 1200×1600, ISO 1920×1080). PDF giữ đúng tỷ lệ từng ảnh trên khổ giấy A4/A3 ngang/dọc đã chọn. Scene cũ chưa lưu kích thước được suy từ khung camera và độ phân giải nguồn/batch. File đã có được thêm số, không ghi đè. Tiến độ và lỗi hiển thị trong dialog; không tạo JSON báo cáo cạnh ảnh.
 
@@ -32,9 +61,9 @@ Hãy lưu công việc và khởi động lại SketchUp khi thuận tiện. M�
 
 ## Kiểm tra đã thực hiện
 
-- Kiểm tra cú pháp 7 file Ruby và chạy kiểm tra engine bằng Ruby WASM 3.2 với mô hình API: hệ trục xoay/lồng/phản chiếu, mặt cắt tùy chỉnh, scene không trùng, đổi tên/xóa/update, khôi phục view và xuất/hủy/lỗi/PDF.
-- Kiểm tra giao diện bằng Chromium: tên có dấu/nháy/ký tự HTML, ID scene, lựa chọn xuất, xác nhận thao tác, đổi model, kích thước 640×780 và 460×540.
-- Cài và kiểm tra hash 11 file VGD; 7.713 file khác không đổi.
+- Kiểm tra cú pháp 8 file runtime Ruby, engine fixture trên Ruby 2.7.2 của SU22 và WASM 3.2: tính năng trước, chuyển giữa model, camera/khung, rename/ID/tên trùng, tạo/cập nhật/bỏ qua, rollback khi lỗi, FOV ngang, JSON lỗi/quá lớn và clipboard qua file.
+- Giao diện Chromium: Unicode/HTML, ID, scope xuất/nhập, xác nhận/hủy/lỗi, đổi model, token preview, sáng/tối, 640×780 và 460×540.
+- Cài bằng allowlist 16 file và kiểm tra hash các plugin khác. Báo cáo thực tế ở backup lượt cài trong outputs.
 - **Chưa hoàn tất kiểm tra engine trong SketchUp 2022 thật.** Script thử đã chạy trên SU22 22.0.316 / Ruby 2.7.2 nhưng dừng ở điều kiện bảo vệ model không rỗng, trước khi tạo hình/scene. Điều khiển máy sau đó được người dùng dừng bằng Esc. Kiểm tra WASM và Chromium không thay thế kiểm thử Ruby 2.7/CEF/LayOut thực tế trong SU22.
 
 Mã nguồn runtime nằm trong `runtime/`; kiểm tra và script cài giới hạn phạm vi nằm trong `dev/`. RBZ chỉ đóng gói runtime, không chứa bộ test hoặc thư viện ngoài.
@@ -46,16 +75,16 @@ git clone https://github.com/vuongpentax/TPlus_Plugins.git
 cd TPlus_Plugins
 ```
 
-Kho riêng tư: đăng nhập tài khoản GitHub có quyền truy cập khi Git yêu cầu. Mở thư mục repository trong Codex và yêu cầu tiếp tục `VGD_Scenes`, đọc `CODEX_HANDOFF.md` trước. Nếu đã clone, chạy `git pull --ff-only` khi không có thay đổi chưa lưu.
+Kho công khai; cần quyền ghi khi push. Mở repository trong Codex và yêu cầu tiếp tục `VGD_Scenes`, đọc `CODEX_HANDOFF.md` trước. Nếu đã clone, chạy `git pull --ff-only` khi không có thay đổi chưa lưu.
 
-Để cài trên máy mới, dùng SketchUp **Window → Extension Manager → Install Extension**, chọn `VGD_Scenes/VGD_Scenes_v1.0.4.rbz`. Hoặc chạy script giới hạn phạm vi:
+Để cài trên máy mới, dùng SketchUp **Window → Extension Manager → Install Extension**, chọn `VGD_Scenes/VGD_Scenes_v1.1.0.rbz`. Hoặc chạy script giới hạn phạm vi:
 
 ```powershell
 .\VGD_Scenes\dev\deploy.ps1 -VerifyOnly
 .\VGD_Scenes\dev\deploy.ps1
 ```
 
-Script mặc định dùng APPDATA của tài khoản hiện tại, chỉ cài 12 file VGD. Nếu muốn tắt loader Scenes T+ cũ đã được kiểm tra, thêm `-RetireLegacy`; script từ chối loader khác hash. Không tác động thư mục `tplus` dùng chung.
+Script mặc định cài SU22 bằng APPDATA của tài khoản hiện tại, chỉ cài 16 file VGD. Với bản khác, cài RBZ trong Extension Manager của đúng bản SketchUp hoặc truyền `-PluginRoot` đến Plugins của bản đó. `-RetireLegacy` chỉ tắt loader Scenes T+ đã review đúng hash. Không sửa `tplus` dùng chung.
 
 Kiểm tra mã/giao diện với Node.js 20 trở lên và Google Chrome:
 
@@ -66,6 +95,8 @@ npm test
 ```
 
 Thư viện Node chỉ phục vụ kiểm tra, không cần cho runtime SketchUp. Không đưa `node_modules`, file xuất thử hoặc bản sao cài đặt lên Git. Sau khi sửa và kiểm tra, commit rồi push trước khi chuyển máy.
+
+Có SU22 tại đường dẫn mặc định và Python 3.8+: chạy `python VGD_Scenes/dev/check_ruby27.py` từ root repo để kiểm tra thêm bằng Ruby 2.7.2. Đường dẫn SU22 khác có thể đặt qua biến `VGD_SU22_ROOT`. DLL chỉ dùng trong console test, không đóng gói vào runtime.
 
 ## Vector XYZ và cập nhật từ đối tượng
 

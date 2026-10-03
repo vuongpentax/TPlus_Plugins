@@ -33,7 +33,9 @@ UI.start_timer(2, false) do
     result = VGD::Scenes::SceneStore.generate(model,cuts,true)
     section = VGD::Scenes::SceneStore.find(model,result[:ids].first)
     model.pages.selected_page = section
-    raise 'Cut not saved' unless model.entities.active_section_plane == VGD::Scenes::SceneStore.plane_for(model,section)
+    planes = VGD::Scenes::SceneStore.planes_for(model, section)
+    contexts = VGD::Scenes::SceneStore.entity_contexts(model)
+    raise 'Cut not saved' unless !planes.empty? && planes.all? { |plane| contexts.any? { |entities| entities.active_section_plane == plane } }
     report[:tests] << 'custom section saved and active'
     id = section.persistent_id.to_s
     VGD::Scenes::SceneStore.rename(model,id,"Mặt cắt O'Brien")

@@ -19,7 +19,7 @@ module VGD
       def self.list(model)
         model.pages.map do |page|
           source = owned?(page) ? metadata(page) : {}
-          { id: page.persistent_id.to_s, name: page.name, owned: owned?(page),
+          { id: page.persistent_id.to_s, name: page.name, owned: owned?(page), imported: !page.get_attribute(DICT, 'transfer_origin').nil?,
             kind: source['kind'], selected: page == model.pages.selected_page }
         end
       end
@@ -270,7 +270,7 @@ module VGD
             end
           end
         end
-        { success: true, message: "Đã xóa #{pages.length} scene. Có thể Undo." }
+        { success: true, message: "Đã xóa #{pages.length} scene." }
       end
     end
   end

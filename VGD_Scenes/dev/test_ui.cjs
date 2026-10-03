@@ -60,6 +60,30 @@ const assert=(ok,text)=>{if(!ok)throw Error(text);};
   await sync({model:'model-b',selection:1,settings:{...settings,project:'SECOND'},scenes:[]});assert(await page.locator('#project').inputValue()==='SECOND'&&await page.locator('#exportButton').isDisabled(),'Model switch retained old draft/IDs');
   await sync();
   const out=path.resolve(__dirname,'../outputs');fs.mkdirSync(out,{recursive:true});
+  // Transfer commands retain selection scope and preview before changing B.
+  await page.click('[data-tab="scenes"]');
+  await page.click('#copyScenes');call=await last();assert(call.action==='copyScenes'&&call.ids.length===0,'Copy-current fallback payload wrong');await sync();
+  await page.click('#selectAll');await page.click('#copyScenes');call=await last();assert(call.ids.length===3,'Copy selection scope wrong');await sync();
+  await page.selectOption('#sceneScope','all');await page.click('#saveScenes');call=await last();assert(call.action==='saveScenes'&&call.scope==='all','All-scene bundle scope wrong');await sync();
+  await page.click('#pasteScenes');assert((await last()).action==='pasteScenes','Paste command missing');await sync();
+  const transfer={token:'preview-token',title:'File A <img src=x>',scenes:[{id:'a'.repeat(32),name:'<img src=x onerror="window.injected=true">',match:'Tên riêng ở B'},{id:'b'.repeat(32),name:'TOP · Tủ',match:null}]};
+  await sync({transfer});assert(await page.locator('#transferModal').isVisible()&&await page.locator('#transferMode').inputValue()==='new','Transfer did not default to create-new preview');
+  assert(await page.locator('#transferList img').count()===0&&!await page.evaluate(()=>window.injected),'Transfer name rendered HTML');
+  await page.click('#transferNone');assert(await page.locator('#transferApply').isDisabled(),'Empty transfer can apply');await page.click('#transferAll');
+  await page.selectOption('#transferMode','update');assert((await page.locator('#transferList').innerText()).includes('Cập nhật: Tên riêng ở B'),'Matching destination not shown');
+  await page.locator('#transferList input').last().uncheck();await sync({transfer});assert(await page.locator('#transferList input:checked').count()===1,'Refresh erased transfer choice');
+  await page.click('#transferApply');call=await last();assert(call.action==='applyTransfer'&&call.token===transfer.token&&call.ids.length===1&&call.mode==='update','Transfer apply scope/token/mode incorrect');
+  assert(await page.locator('#transferApply').isDisabled(),'Double import allowed');
+  await receive('result',{success:false,message:'Thử lỗi để giữ lựa chọn'});await sync({transfer});assert(await page.locator('#transferModal').isVisible(),'Failed import closed preview');
+  for(const [width,height] of [[640,780],[460,540]]){
+    await page.setViewportSize({width,height});
+    const bounds=await page.locator('.transfer-card').boundingBox();assert(bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.width<=width&&bounds.y+bounds.height<=height,'Transfer dialog clipped');
+    const applyBounds=await page.locator('#transferApply').boundingBox();assert(applyBounds.y+applyBounds.height<=height,'Transfer apply outside window');
+    await page.screenshot({path:path.join(out,`VGD_transfer_${width}.png`)});
+  }
+  await page.click('#transferCancel');assert((await last()).action==='cancelTransfer'&&await page.locator('#transferModal').isHidden(),'Transfer cancel mutated/retained preview');await sync();
+  await sync({transfer});await sync({model:'model-b',transfer:null});assert(await page.locator('#transferModal').isHidden(),'Model switch kept transfer preview');await sync();
+  await page.setViewportSize({width:640,height:780});await sync({transfer});await page.keyboard.press('Escape');assert((await last()).action==='cancelTransfer','Escape did not cancel transfer');await sync();
   for(const [width,height] of [[640,780],[460,540]]){
    await page.setViewportSize({width,height});
    for(const tab of ['views','sections','scenes','export']){
@@ -73,7 +97,8 @@ const assert=(ok,text)=>{if(!ok)throw Error(text);};
   await page.click('[data-tab="scenes"]');await page.screenshot({path:path.join(out,'VGD_scenes.png')});
   await page.click('[data-tab="sections"]');await page.screenshot({path:path.join(out,'VGD_section.png')});
   await page.click('[data-tab="export"]');await page.selectOption('#ratio','16:9');await page.screenshot({path:path.join(out,'VGD_export.png')});
+  await sync({transfer});await page.screenshot({path:path.join(out,'VGD_transfer_dark.png')});
   assert(errors.length===0,'Browser errors: '+errors.join(';'));
-  console.log('PASS: safe Unicode/HTML scene names, ID actions, confirmation/cancel, selected PDF/JPG/PNG scope, custom section, frame, validation, draft/model switching, responsive light/dark UI');
+  console.log('PASS: safe Unicode/HTML scene names, ID actions, confirmation/cancel, selected PDF/JPG/PNG scope, custom section, frame, validation, draft/model switching, transfer preview/scope/token/update/cancel/failure, responsive light/dark UI');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -130,7 +130,7 @@ doc=Layout.documents.last;assert(events.last[1][:success] && doc.pages.length==2
 image=doc.pages.first.images.first;assert(near(image.bounds.width/image.bounds.height,1920.0/1080),'PDF image stretched')
 events=[];job=s::ExportJob.new(model,export_pages,opts,'/tmp/vgd-tests',lambda { |event,payload| events << [event,payload] });job.start;job.cancel;UI.drain
 assert(events.last[1][:cancelled] && events.last[1][:count]==0 && !s::FrameTool.suspended,'Cancel failed cleanup')
-assert(UI.toolbars.length==1 && UI.toolbars.first.events==[:add,:add],'Startup changed toolbar visibility')
+assert(UI.toolbars.length==1 && UI.toolbars.first.events==[:add,:add,:add,:add,:add],'Startup changed toolbar visibility')
 puts 'PASS: selected-scene PNG/JPG alpha rules, failure reporting, cancelled cleanup, state restoration, mock PDF pages/aspect, own toolbar only'
 
 model.selection.clear;model.selection.add(target)
@@ -245,3 +245,43 @@ UI.next_savepanel='/tmp/scaled-exports/Final.PDF'
 end
 assert(File.file?('/tmp/scaled-exports/PDF/Final.pdf') && File.file?('/tmp/scaled-exports/PDF/Final_2.pdf'),'PDF path/type folder or no-overwrite numbering wrong')
 puts 'PASS: arbitrary batch scale, per-scene/PDF aspect unchanged, preflight bounds, dated type folders, native-picker routing and collision numbering'
+
+# Invoke the actual toolbar callback; capture only the active scene without a dialog.
+capture_command=UI.toolbars.first.commands[2]
+assert(capture_command && capture_command.small_icon.end_with?('update_view.svg') && capture_command.large_icon==capture_command.small_icon,'Current-view toolbar icon missing')
+assert(UI.toolbars.first.commands.map(&:small_icon).uniq.length==5,'Toolbar icons are not distinct')
+previous_model=Sketchup.active_model
+capture_model=Sketchup::Model.new;Sketchup.active_model=capture_model
+capture_page=capture_model.pages.add("View O'Brien");capture_page.update(0)
+capture_page.set_attribute(s::DICT,'owner','VGD Scenes')
+source_json={'kind'=>'ISO','paths'=>[[123]],'options'=>opts}.to_json
+capture_page.set_attribute(s::DICT,'source',source_json)
+untouched=capture_model.pages.add('Other scene');untouched.update(0);untouched_saved=untouched.saved
+capture_model.pages.selected_page=capture_page
+composed_camera=Sketchup::Camera.new(Geom::Point3d.new(150,100,90),Geom::Point3d.new(4,3,2),Geom::Vector3d.new(0,0,1),true)
+composed_camera.aspect_ratio=1.5;capture_model.active_view.camera=composed_camera
+capture_model.rendering_options['DisplaySectionCuts']=false
+result=capture_command.proc.call
+assert(result[:success] && capture_model.pages.length==2 && capture_model.pages.selected_page.equal?(capture_page),'Toolbar capture created or switched scene')
+assert(capture_page.camera.eye==composed_camera.eye && capture_page.camera.target==composed_camera.target && capture_page.camera.perspective? && near(capture_page.camera.aspect_ratio,1.5),'Toolbar capture refitted current camera')
+assert(capture_page.name=="View O'Brien" && capture_page.get_attribute(s::DICT,'source')==source_json,'Toolbar capture changed name/source')
+assert(capture_page.saved[:rendering]['DisplaySectionCuts']==false && near(s::SceneFrame.read(capture_page,opts)['width'].to_f/s::SceneFrame.read(capture_page,opts)['height'],1.5),'Toolbar did not save current display/frame')
+assert(untouched.saved.equal?(untouched_saved) && s.instance_variable_get(:@dialog).nil?,'Toolbar touched other scene or opened panel')
+assert(capture_model.events.last[0]==:commit,'Toolbar capture did not commit Undo operation')
+capture_model.pages.selected_page=untouched
+assert(capture_command.proc.call[:success] && !s::SceneStore.owned?(untouched),'Toolbar cannot explicitly update a selected native scene')
+before_events=capture_model.events.length;before_saved=untouched.saved
+capture_model.pages.selected_page=nil
+assert(!capture_command.proc.call[:success] && capture_model.events.length==before_events && capture_model.pages.length==2,'No selected scene created/mutated a scene')
+capture_model.pages.selected_page=untouched;capture_model.active_path=[Object.new]
+assert(!capture_command.proc.call[:success] && capture_model.events.length==before_events && untouched.saved.equal?(before_saved),'Edit-context guard mutated a scene')
+capture_model.active_path=nil;s.instance_variable_set(:@job,Object.new)
+assert(!capture_command.proc.call[:success] && capture_model.events.length==before_events && untouched.saved.equal?(before_saved),'Export-busy guard mutated a scene')
+s.instance_variable_set(:@job,nil)
+untouched.fail=true
+assert(!capture_command.proc.call[:success] && capture_model.events.last[0]==:abort && untouched.saved.equal?(before_saved),'Failed capture reported success or did not abort')
+untouched.fail=false
+capture_model.pages.erase(untouched);before_events=capture_model.events.length
+assert(!capture_command.proc.call[:success] && capture_model.events.length==before_events,'Invalid selected scene mutated model')
+Sketchup.active_model=previous_model
+puts 'PASS: toolbar saves active composed view without panel, preserves scene name/source/others, supports Undo and guards missing/invalid scene, edit context, busy export and native update failure'

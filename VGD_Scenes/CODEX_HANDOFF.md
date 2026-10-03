@@ -6,7 +6,7 @@ Thương hiệu chính **VGD**; giao diện theo theme T+ (nâu/trắng/than, s�
 
 ## Bản hiện tại
 
-Runtime 1.0.4 độc lập `VGD::Scenes`, loader `vgd_scenes.rb`, thư mục `vgd_scenes/`. Không dùng namespace TPlus, không monkey patch, không observers, không tự hiện toolbar, không phụ thuộc Node/Python hoặc Internet.
+Runtime 1.1.0 độc lập `VGD::Scenes`, loader `vgd_scenes.rb`, thư mục `vgd_scenes/`. Mục tiêu Windows SU2022–2026.2. Không dùng namespace TPlus, không monkey patch, không observers, không tự hiện toolbar, không phụ thuộc Node/Python hoặc Internet.
 
 - `utils.rb`: kiểm tra thông số, operation/Undo, filename, ViewState để phục hồi view.
 - `geometry.rb`: persistent paths, transform tích lũy/local axes, fit camera, vị trí/vector mặt cắt.
@@ -19,7 +19,7 @@ PDF là raster một ảnh mỗi trang, không phải viewport/vector có tỷ l
 
 ## Kiểm tra và việc cần tiếp tục
 
-7 file Ruby đã kiểm tra cú pháp bằng Ruby WASM 3.2, engine qua fixture API; giao diện qua Chromium ở 640×780 và 460×540. Xem `dev/test_engine.rb`, `dev/test_ui.cjs`. `npm install` trong `dev` rồi `npm test`; cần Node 20+ và Chrome. Không xem fixture là bằng chứng engine SketchUp native hoạt động.
+8 file runtime Ruby đã kiểm tra cú pháp/fixture bằng Ruby WASM 3.2 và DLL Ruby 2.7.2 của SU22 (console process riêng); giao diện Chromium 640×780 và 460×540. Xem `dev/test_engine.rb`, `dev/test_transfer.rb`, `dev/test_ui.cjs`. `npm install` trong `dev` rồi `npm test`; Node20+/Chrome. Có SU22/Python: `python VGD_Scenes/dev/check_ruby27.py` từ root repo. Không xem fixture hoặc chạy DLL là bằng chứng kernel SketchUp native hoạt động.
 
 **Ưu tiên tiếp theo: kiểm thử thực tế SU22/Ruby 2.7.2 và LayOut API.** Lần thử riêng ghi nhận SU 22.0.316/Ruby 2.7.2 nhưng guard model không rỗng đã dừng trước khi thay đổi; người dùng dừng điều khiển máy bằng Esc. Chưa có bằng chứng native tạo scene/export thành công. `dev/native_smoke.rb` chỉ được chạy ở phiên thử với model rỗng; guard từ chối model có geometry/pages hoặc path, không được bỏ guard để chạy trong bản vẽ đang làm. Có thể template SketchUp có người mẫu nên không rỗng; chuẩn bị model thử sạch bằng thao tác được phép trước khi chạy.
 
@@ -27,9 +27,9 @@ Kiểm tra camera theo đối tượng xoay/lồng/mirror, section đang active 
 
 ## Cài và phạm vi bảo vệ
 
-`dev/deploy.ps1` dùng APPDATA hiện tại và allowlist 11 file. Có backup và rollback file VGD, hash trước/sau các file khác. `-RetireLegacy` chỉ tắt đúng loader Scenes T+ có hash đã review, không sửa `tplus/`. Trên máy ban đầu đã cài 11 file, tắt loader cũ bằng đổi đuôi `.rb.vgd-disabled`, đối chiếu 7.713 file khác: 0 thay đổi. Backup/outputs ở máy cài, bỏ qua Git.
+`dev/deploy.ps1` mặc định dùng APPDATA/SU22 và allowlist 16 file; bản khác dùng `-PluginRoot` hoặc RBZ. Có backup/rollback file VGD, hash trước/sau file khác. `-RetireLegacy` chỉ tắt đúng loader Scenes T+ có hash review, không sửa `tplus/`. Lượt đầu 1.0.0: 11 file/7.713 file khác không đổi. Lượt 1.0.5: 13 file/7.914 file khác không đổi. Báo cáo cài mới ở outputs/install_*/install_report.json; bỏ qua Git.
 
-RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), không bọc thêm thư mục runtime. Khi runtime thay đổi, tạo lại RBZ; RBZ 1.0.4 tương ứng runtime hiện tại; bản 1.0.0 giữ để tham khảo.
+RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), không bọc thêm thư mục runtime. Khi runtime thay đổi, tạo lại RBZ; RBZ 1.1.0 tương ứng runtime hiện tại; các bản cũ giữ để tham khảo.
 
 ## Thay đổi 1.0.1
 
@@ -66,3 +66,22 @@ RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), k
 - Main preflight trước hộp chọn nơi lưu. output_directory(root, opts, date=Time.now) tạo root/[YYYY.MM.DD]/PNG|JPG|PDF. PDF giữ savepanel để đặt tên; chuyển file vào thư mục loại và đánh số chống ghi đè.
 - date_folder dùng ngày địa phương tại lúc chuẩn bị đường dẫn, không thay đổi giữa các scene. Không có JSON sidecar.
 - Các bản cài và WASM/browser tests nằm trong outputs, không đưa lên GitHub. Runtime 1.0.4 gồm 12 file, chưa kiểm chứng native SU22/LayOut.
+
+## Thay đổi 1.0.5
+
+- Thêm nút thứ ba trên toolbar và menu: **Cập nhật view hiện tại**, icon `update_view.svg` (máy ảnh/mũi tên vòng). `capture_current_view` gọi SceneStore.capture theo persistent ID của selected_page trong active_model; không mở bảng. Giữ tên và source metadata, lưu camera/hiển thị/mặt cắt/khung, có Undo. Áp dụng scene VGD hoặc scene native người dùng chủ động chọn.
+- Chặn trước operation khi chưa có selected_page hợp lệ, đang edit Group/Component hoặc có export job; lỗi báo messagebox, thành công báo status bar. Không có popup xác nhận cho lượt lưu thành công.
+- Allowlist cài tăng lên 13 file; chỉ thêm update_view.svg trong thư mục VGD riêng. Bộ test gọi chính UI::Command.proc: camera phối cảnh/bố cục, chỉ scene được chọn, giữ tên/source, không mở bảng, scene ngoài VGD, missing/invalid/edit/busy/failure guards và abort.
+- Kiểm tra cú pháp/fixture WASM đã qua; chưa kiểm thử icon/callback trong SU22 native. Để nạp toolbar mới, khởi động lại SketchUp; không tự đóng model hay tạo lại toolbar trong phiên đang làm.
+
+## Thay đổi 1.1.0 và tương thích SU22–2026.2
+
+- `transfer.rb`: schema JSON VGD.Scenes.Transfer v1, tối đa 1.000 scene/8 MB; vector/finite/FOV/frame/name/ID validation trước mọi thay đổi. Chỉ camera/khung, không export owner/source paths/entity PID/cut geometry/style/Tags. Tọa độ inch/world, A/B cần cùng gốc/hướng; chưa relative-anchor hoặc two-point/Match Photo (center_2d/scale_2d không có setters).
+- Scene nguồn có transfer_id ổn định qua rename/Save As; gán lần đầu trong operation, cần lưu SKP để giữ qua reopen. Scene nhập mới có transfer_id riêng và transfer_origin nguồn, nên nhập Tạo mới nhiều lần vẫn xuất được. Match origin/ID trước rồi exact-name; ambiguity và hai nguồn khớp một đích bị từ chối. Update giữ tên/order/source/visibility/cuts đích, đánh camera_custom cho scene owned. Imported badge được tính từ transfer_origin; imported mới không được coi là source-owned.
+- Clipboard private APPDATA/VGD/Scenes/scene_clipboard_v1.json để SU22 và nhiều process/bản dùng chung; không dùng UI.get/set_clipboard_data (chỉ có SU2023.1+). File JSON có schema check, atomic replace clipboard; xuất riêng exclusive-create/no overwrite.
+- Main có copy/paste/save/load/apply/cancelTransfer; Ruby giữ payload + model object + token + preview target IDs. Model/token đổi hoặc target match khác preview sẽ từ chối; @job/edit guards. Preview cache và index ID/name tránh quét native attributes toàn bộ cho mỗi scene ở mỗi poll.
+- Toolbar 5 nút: panel/4-view/update-view/copy-current/paste. Copy-current không mở panel; Paste/Load mở panel và preview. Trong Scene: copy selected (fallback current), xuất selected/all, nhập checklist new/update/skip (default new). JS dùng textContent/ID/token, giữ chọn khi refresh, hủy/Esc, chặn double-submit và model switch.
+- New page được tạo với PAGE_USE_CAMERA; update sửa trực tiếp Page#camera để giữ các thiết lập khác. API hỗ trợ SU22. Operation là bắt buộc cho scene edits SU2026; SU22–25 camera scene không có native Undo tương đương, nên transfer tự backup và rollback camera/attrs + erase created pages nếu lỗi. Không hứa Undo toàn bộ scene cho SU cũ.
+- Target current xác minh release notes SU2026.2 ngày 2026-10-03. Ruby2.7-compatible syntax; actual SU22 Ruby2.7.2 DLL chạy trong console process với fixture đã qua; Ruby3.2 WASM/Chromium đã qua. `check_ruby27.py` không launch SketchUp/kernel, không đụng model đang làm; ghi test data chỉ trong outputs. SU2025 vpwidth/vpheight và draw2d đổi đồng thời sang logical pixels nên grid không scale tay thêm. **Chưa xác minh native các phiên bản SU2022–2026.2.**
+- Allowlist deploy 16 file, thêm transfer.rb/copy_scene.svg/paste_scene.svg. Chỉ cài SU22 theo yêu cầu hiện tại; không tự copy vào bản khác hoặc thay plugin khác. Dev native_smoke sửa kiểm tra scoped section vốn còn API plane_for cũ.
+- Đã cài 1.1.0 SU22 lúc 2026-10-03 11:17 +07:00, backup outputs/install_20261003_111743_242; 16 file khớp nguồn, 7.914 file khác hash không đổi; legacy_loader_retired=false (đã tắt từ trước). Toolbar mới cần restart SU; không thay đổi phiên model đang mở.
