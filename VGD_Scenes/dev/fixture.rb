@@ -104,12 +104,21 @@ module Sketchup
   end
   class Layers < Array;def folders;[];end;end
   class Camera
-    attr_accessor :eye,:target,:up,:height,:fov,:aspect_ratio
+    attr_accessor :eye,:target,:up,:height,:fov,:aspect_ratio,:image_width
     attr_accessor :two_point,:vertical_fov,:fail_set_once,:fail_aspect_once
     def initialize(eye=Geom::Point3d.new(0,-100,100),target=Geom::Point3d.new(0,0,0),up=Geom::Vector3d.new(0,0,1),perspective=false)
-      @eye=eye;@target=target;@up=up;@perspective=perspective;@height=80;@fov=35;@aspect_ratio=0.0
+      @eye=eye;@target=target;@up=up;@perspective=perspective;@height=80;@fov=35;@aspect_ratio=0.0;@image_width=0.0
     end
     def perspective?;@perspective;end
+    def fov=(value)
+      raise ArgumentError, 'Native fov= accepts only 1..120' unless value.between?(1,120)
+      @fov=value
+    end
+    def focal_length=(value)
+      raise ArgumentError, 'Native focal_length= accepts only 1..3000' unless value.between?(1,3000)
+      width=image_width == 0 ? 36.0 : image_width
+      @fov=Math.atan(width/(2.0*value))*360/Math::PI
+    end
     def aspect_ratio=(value)
       @aspect_ratio=value
       if @fail_aspect_once;@fail_aspect_once=false;raise 'Simulated aspect setter failure after write';end
@@ -161,6 +170,8 @@ module Sketchup
     attr_reader :writes
     def initialize;@camera=Camera.new;@writes=[];end
     def invalidate;end
+    def vpwidth;800;end
+    def vpheight;600;end
     def refresh;end
     def write_image(opts)
       @last_written_camera=VGD::Scenes.camera_copy(camera)

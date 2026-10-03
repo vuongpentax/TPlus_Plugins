@@ -10,7 +10,7 @@ require_relative 'transfer'
 require_relative 'camera'
 module VGD
   module Scenes
-    VERSION = '1.2.1'.freeze unless const_defined?(:VERSION, false)
+    VERSION = '1.2.2'.freeze unless const_defined?(:VERSION, false)
     class << self
       def state
         model = Sketchup.active_model

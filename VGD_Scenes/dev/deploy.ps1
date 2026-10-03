@@ -71,7 +71,7 @@ try {
   }
   $after = Other-Hashes
   $changed = @(@($before.Keys + $after.Keys) | Sort-Object -Unique | Where-Object { $before[$_] -ne $after[$_] })
-  $report = [ordered]@{ installed_at=(Get-Date -Format o); plugin_root=$pluginRoot; version='1.2.1'; installed_files=$owned; other_files_checked=$before.Count; other_files_changed=$changed; legacy_loader_retired=$didRetire; backup=$backup }
+  $report = [ordered]@{ installed_at=(Get-Date -Format o); plugin_root=$pluginRoot; version='1.2.2'; installed_files=$owned; other_files_checked=$before.Count; other_files_changed=$changed; legacy_loader_retired=$didRetire; backup=$backup }
   $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $backup 'install_report.json') -Encoding utf8
   if ($changed.Count) { throw "Other plugin files changed during install: $($changed -join ', ')" }
   Write-Output ($report | ConvertTo-Json -Depth 5)

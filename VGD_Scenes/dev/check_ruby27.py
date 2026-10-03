@@ -60,7 +60,7 @@ try:
         source = (runtime / 'vgd_scenes' / (name + '.rb')).read_text(encoding='utf-8')
         source = '\n'.join(line for line in source.splitlines() if not line.startswith('require_relative ') and line != "require 'sketchup.rb'")
         evaluate(source)
-    for name in ['test_engine.rb', 'test_transfer.rb', 'test_order_camera.rb', 'test_clear_frames.rb']:
+    for name in ['test_engine.rb', 'test_transfer.rb', 'test_order_camera.rb', 'test_clear_frames.rb', 'test_transfer_fov.rb']:
         source = (root / 'dev' / name).read_text(encoding='utf-8').replace('/tmp', temp_root)
         evaluate(source)
     print('PASS: actual Ruby 2.7.2 DLL with simulated SketchUp API; no native kernel test', flush=True)

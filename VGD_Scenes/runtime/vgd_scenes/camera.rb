@@ -31,19 +31,7 @@ module VGD
         raise ArgumentError, 'Cao độ làm hướng nhìn không hợp lệ. Bật Giữ hướng nhìn hoặc chọn cao độ khác.' if direction.length < 1e-9 || direction.normalize.cross(original.up.normalize).length < 1e-9
         camera = Sketchup::Camera.new(Geom::Point3d.new(eye), Geom::Point3d.new(target), original.up, original.perspective?)
         camera.aspect_ratio = original.aspect_ratio
-        if original.perspective?
-          fov = original.fov
-          if camera.fov_is_height? != original.fov_is_height?
-            aspect = original.aspect_ratio
-            aspect = model.active_view.vpwidth.to_f / model.active_view.vpheight if aspect <= 0
-            tangent = Math.tan(fov * Math::PI / 360)
-            tangent = original.fov_is_height? ? tangent * aspect : tangent / aspect
-            fov = Math.atan(tangent) * 360 / Math::PI
-          end
-          camera.fov = fov
-        else
-          camera.height = original.height
-        end
+        Scenes.copy_camera_lens(camera, original, model.active_view)
         model.active_view.camera = camera
         model.active_view.invalidate
         { success: true, message: "Đã xem trước cao độ mắt #{z.round(2)} mm theo Z thế giới. Bấm Cập nhật view để lưu vào scene." }

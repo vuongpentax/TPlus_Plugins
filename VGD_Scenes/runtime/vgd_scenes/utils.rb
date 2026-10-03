@@ -104,14 +104,59 @@ module VGD
       path
     end
 
-    def self.camera_copy(camera)
+    def self.valid_fov(value)
+      raise ArgumentError, 'FOV: cần số hữu hạn lớn hơn 0 và nhỏ hơn 180°.' unless value.is_a?(Numeric) && value.to_f.finite? && value > 0 && value < 180
+      value.to_f
+    end
+
+    def self.convert_fov(value, source_vertical, target_vertical, aspect)
+      fov = valid_fov(value)
+      return fov if source_vertical == target_vertical
+      raise ArgumentError, 'Cần tỷ lệ khung để quy đổi FOV ngang/dọc.' unless aspect.is_a?(Numeric) && aspect.finite? && aspect > 0
+      tangent = Math.tan(fov * Math::PI / 360)
+      tangent = source_vertical ? tangent * aspect : tangent / aspect
+      valid_fov(Math.atan(tangent) * 360 / Math::PI)
+    end
+
+    def self.set_camera_fov(camera, value)
+      fov = valid_fov(value)
+      if fov.between?(1,120)
+        camera.fov = fov
+      else
+        # fov= accepts only 1..120, while an equivalent angle on the other
+        # axis can exceed those limits. The documented focal_length= setter
+        # computes FOV from image_width; restore image_width afterward (it
+        # has no effect on the displayed view). Never clamp the camera angle.
+        old_width = camera.image_width
+        begin
+          camera.image_width = 70.0 * Math.tan(fov * Math::PI / 360)
+          camera.focal_length = 35.0
+        ensure
+          camera.image_width = old_width
+        end
+      end
+      actual = valid_fov(camera.fov)
+      raise ArgumentError, "SketchUp không phục hồi đúng FOV #{fov.round(6)}°." unless (actual-fov).abs <= 1e-8 * [1e-6,fov].max
+      camera
+    end
+
+    def self.copy_camera_lens(destination, source, view = nil)
+      if source.perspective?
+        aspect = destination.aspect_ratio
+        if aspect <= 0 && destination.fov_is_height? != source.fov_is_height?
+          view ||= Sketchup.active_model.active_view
+          aspect = view.vpwidth.to_f / view.vpheight
+        end
+        set_camera_fov(destination, convert_fov(source.fov, source.fov_is_height?, destination.fov_is_height?, aspect))
+      else
+        destination.height = source.height
+      end
+    end
+
+    def self.camera_copy(camera, view = nil)
       copy = Sketchup::Camera.new(camera.eye, camera.target, camera.up, camera.perspective?)
       copy.aspect_ratio = camera.aspect_ratio
-      if camera.perspective?
-        copy.fov = camera.fov
-      else
-        copy.height = camera.height
-      end
+      copy_camera_lens(copy, camera, view)
       copy
     end
 

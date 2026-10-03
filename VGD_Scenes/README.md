@@ -1,4 +1,4 @@
-# VGD Scenes 1.2.1 — SketchUp 2022–2026.2
+# VGD Scenes 1.2.2 — SketchUp 2022–2026.2
 
 Plugin tạo view đối tượng, mặt cắt tùy chỉnh, quản lý scene và xuất ảnh/PDF. Thương hiệu VGD, giao diện sáng/tối dùng bảng màu nâu, trắng và than theo theme T+.
 
@@ -11,6 +11,7 @@ Plugin tạo view đối tượng, mặt cắt tùy chỉnh, quản lý scene v�
 - Lượt cài 1.1.0 ngày 03/10/2026: 16 file khớp runtime; **7.914 file plugin khác không đổi**. Backup: `outputs/install_20261003_111743_242/`.
 - Lượt cài 1.2.0 ngày 03/10/2026: 17 file khớp runtime; **7.939 file plugin khác không đổi**. Backup: `outputs/install_20261003_171852_481/`.
 - Lượt cài 1.2.1 ngày 03/10/2026: 17 file khớp runtime; **7.994 file plugin khác không đổi**. Backup: `outputs/install_20261003_183241_486/`.
+- Lượt cài 1.2.2 ngày 03/10/2026: 17 file khớp runtime; **8.011 file plugin khác không đổi**. Backup: `outputs/install_20261003_194856_747/`.
 - Báo cáo và bản sao loader cũ nằm trong `outputs/install_*/` trên máy đã cài, không đưa lên GitHub.
 
 Hãy lưu công việc và khởi động lại SketchUp khi thuận tiện. Mở **Extensions → VGD Scenes → VGD Scenes · Bảng điều khiển**. Nếu muốn toolbar, chọn **Hiện thanh công cụ VGD Scenes** trong menu này.
@@ -33,6 +34,12 @@ Chuyển camera perspective/parallel, vị trí/hướng/roll, FOV hoặc chiề
 Bản này chưa chuyển Tags, style, đối tượng ẩn, mặt cắt hoặc animation; cập nhật giữ thiết lập đó ở B. Từ chối hai điểm/Match Photo vì API không có setter đầy đủ để phục hồi chính xác. Giới hạn 1.000 scene/8 MB; kiểm tra JSON trước khi đổi model.
 
 Clipboard riêng ở `%APPDATA%/VGD/Scenes/scene_clipboard_v1.json`, dùng giữa các process/phiên bản SketchUp trên cùng tài khoản Windows; không dùng clipboard hệ thống. Copy/xuất lần đầu gán attribute ID riêng vào scene nguồn, nên SKP có thể hiện đã sửa; lưu SKP để giữ ID khi mở lại.
+
+### Sửa FOV khi chuyển scene (1.2.2)
+
+Thông báo “FOV quy đổi: ngoài giới hạn” trước đây xuất hiện khi đổi FOV ngang/dọc theo tỷ lệ khung rồi áp giới hạn 1–120° của setter lên góc tương đương. Xuất/đọc JSON giờ chỉ kiểm tra dữ liệu và giữ nguyên FOV/trục đo, không dựng camera hoặc thay đổi camera nguồn. Khi nhập/copy/chỉnh cao độ, dùng cùng phép chuyển trục; góc ngoài 1–120° được đặt qua `image_width`/`focal_length` theo [Camera API](https://ruby.sketchup.com/Sketchup/Camera.html), phục hồi image_width rồi kiểm tra FOV thực tế. Không ép góc về giới hạn. Dữ liệu lỗi và lỗi preflight nhập có tên scene; nhập vẫn dựng tất cả camera trước khi sửa model.
+
+`dev/test_transfer_fov.rb` đã qua Ruby 2.7.2 DLL và WASM 3.2: khung dọc FOV tương đương >120°, khung ngang góc <1°, xuất/đọc/nhập mới/cập nhật/xuất lại, copy/cao độ, camera nguồn nguyên vẹn, lỗi setter/clamp và dữ liệu không hợp lệ. Đây là fixture mô phỏng API, chưa kiểm chứng setter góc cực trị trong kernel SketchUp thật.
 
 ### Bỏ khung xám trước khi gửi SKP (1.2.1)
 
@@ -91,13 +98,13 @@ Mã nguồn runtime nằm trong `runtime/`; kiểm tra và script cài giới h�
 ## Tiếp tục trên máy ở nhà
 
 ```powershell
-git clone https://github.com/vuongpentax/TPlus_Plugins.git
-cd TPlus_Plugins
+git clone https://github.com/vuongpentax/VGD_Plugins.git
+cd VGD_Plugins
 ```
 
 Kho công khai; cần quyền ghi khi push. Mở repository trong Codex và yêu cầu tiếp tục `VGD_Scenes`, đọc `CODEX_HANDOFF.md` trước. Nếu đã clone, chạy `git pull --ff-only` khi không có thay đổi chưa lưu.
 
-Để cài trên máy mới, dùng SketchUp **Window → Extension Manager → Install Extension**, chọn `VGD_Scenes/VGD_Scenes_v1.2.1.rbz`. Hoặc chạy script giới hạn phạm vi:
+Để cài trên máy mới, dùng SketchUp **Window → Extension Manager → Install Extension**, chọn `VGD_Scenes/VGD_Scenes_v1.2.2.rbz`. Hoặc chạy script giới hạn phạm vi:
 
 ```powershell
 .\VGD_Scenes\dev\deploy.ps1 -VerifyOnly

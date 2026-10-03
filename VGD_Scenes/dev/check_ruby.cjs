@@ -18,6 +18,7 @@ const {WASI}=require('wasi');
  vm.eval(fs.readFileSync(path.join(__dirname,'test_transfer.rb'),'utf8'));
  vm.eval(fs.readFileSync(path.join(__dirname,'test_order_camera.rb'),'utf8'));
  vm.eval(fs.readFileSync(path.join(__dirname,'test_clear_frames.rb'),'utf8'));
+ vm.eval(fs.readFileSync(path.join(__dirname,'test_transfer_fov.rb'),'utf8'));
  vm.eval('$stdout.flush');
  if(fs.readdirSync(path.join(tmpRoot,'mixed-frames')).some(name=>name.endsWith('.json')))throw Error('Unrequested report JSON emitted');
 })().catch(e=>{console.error(e);process.exitCode=1;});

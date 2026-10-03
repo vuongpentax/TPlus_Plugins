@@ -1,5 +1,13 @@
 # Bàn giao VGD Scenes
 
+## Thay đổi 1.2.2
+
+Đã cài SU22 lúc 19:49 +07 ngày 03/10/2026; backup `outputs/install_20261003_194856_747/`, 17 file khớp runtime, 8.011 file plugin khác hash không đổi. Không reload process hoặc sửa model đang mở; khởi động lại SketchUp để nhận bản mới.
+
+Sửa báo “FOV quy đổi ngoài giới hạn” khi xuất JSON toàn bộ. `SceneTransfer.validate_camera` chỉ kiểm tra dữ liệu, tách khỏi dựng Camera; xuất/read/write không chuyển trục hoặc sửa camera nguồn. Chấp nhận physical FOV hữu hạn 0<FOV<180, vẫn kiểm tra aspect/pose/frame. Import preflight tất cả camera trước writes, thêm tên scene khi lỗi. `Scenes.convert_fov`, `set_camera_fov`, `copy_camera_lens` dùng chung transfer/camera_copy/cao độ và rollback; góc tương đương ngoài setter 1–120 dùng sensor width tạm + focal_length=35mm, ensure phục hồi image_width, xác minh getter với dung sai. Không clamp. Rollback aspect=0 dùng tỷ lệ view nếu đổi trục.
+
+`dev/test_transfer_fov.rb` chạy fixture Ruby 2.7.2 DLL và WASM3.2: >120/<1, JSON roundtrip, new/update, copy/cao độ, source giữ nguyên, native setter giả lập từ chối/clamp/fail, tên scene/preflight. Chưa chạy kernel SketchUp thật; không được coi fixture là bằng chứng setter native góc cực trị đã hoạt động. Runtime/RBZ 1.2.2, allowlist vẫn 17 file.
+
 ## Thay đổi 1.2.1
 
 Đã cài SU22 lúc 18:32 +07 ngày 03/10/2026; backup `outputs/install_20261003_183241_486/`, 17 file khớp runtime, 7.994 file plugin khác hash không đổi. Chưa reload process SketchUp đang mở.
@@ -28,7 +36,7 @@ Thương hiệu chính **VGD**; giao diện theo theme T+ (nâu/trắng/than, s�
 
 ## Bản hiện tại
 
-Runtime 1.2.1 độc lập `VGD::Scenes`, loader `vgd_scenes.rb`, thư mục `vgd_scenes/`. Mục tiêu Windows SU2022–2026.2. Không dùng namespace TPlus, không monkey patch, không observers, không tự hiện toolbar, không phụ thuộc Node/Python hoặc Internet.
+Runtime 1.2.2 độc lập `VGD::Scenes`, loader `vgd_scenes.rb`, thư mục `vgd_scenes/`. Mục tiêu Windows SU2022–2026.2. Không dùng namespace TPlus, không monkey patch, không observers, không tự hiện toolbar, không phụ thuộc Node/Python hoặc Internet.
 
 - `utils.rb`: kiểm tra thông số, operation/Undo, filename, ViewState để phục hồi view.
 - `geometry.rb`: persistent paths, transform tích lũy/local axes, fit camera, vị trí/vector mặt cắt.
@@ -51,7 +59,7 @@ Kiểm tra camera theo đối tượng xoay/lồng/mirror, section đang active 
 
 `dev/deploy.ps1` mặc định dùng APPDATA/SU22 và allowlist 17 file; bản khác dùng `-PluginRoot` hoặc RBZ. Có backup/rollback file VGD, hash trước/sau file khác. `-RetireLegacy` chỉ tắt đúng loader Scenes T+ có hash review, không sửa `tplus/`. Lượt đầu 1.0.0: 11 file/7.713 file khác không đổi. Lượt 1.0.5: 13 file/7.914 file khác không đổi. Báo cáo cài mới ở outputs/install_*/install_report.json; bỏ qua Git.
 
-RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), không bọc thêm thư mục runtime. Khi runtime thay đổi, tạo lại RBZ; RBZ 1.2.1 tương ứng runtime hiện tại; các bản cũ giữ để tham khảo.
+RBZ là ZIP của **nội dung runtime/** (loader và thư mục ngang hàng), không bọc thêm thư mục runtime. Khi runtime thay đổi, tạo lại RBZ; RBZ 1.2.2 tương ứng runtime hiện tại; các bản cũ giữ để tham khảo.
 
 ## Thay đổi 1.0.1
 

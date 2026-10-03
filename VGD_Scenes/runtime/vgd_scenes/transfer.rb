@@ -47,7 +47,7 @@ module VGD
         value
       end
 
-      def self.camera(raw)
+      def self.validate_camera(raw)
         raise ArgumentError, 'Thiếu dữ liệu camera.' unless raw.is_a?(Hash)
         eye = Geom::Point3d.new(vector(raw['eye'], 'Eye'))
         target = Geom::Point3d.new(vector(raw['target'], 'Target'))
@@ -55,23 +55,25 @@ module VGD
         direction = target - eye
         raise ArgumentError, 'Camera có hướng nhìn không hợp lệ.' if direction.length < 1e-9 || up.length < 1e-9 || direction.normalize.cross(up.normalize).length < 1e-9
         raise ArgumentError, 'Kiểu camera không hợp lệ.' unless [true, false].include?(raw['perspective'])
-        result = Sketchup::Camera.new(eye, target, up, raw['perspective'])
-        result.aspect_ratio = number(raw['aspect'], 'Tỷ lệ camera', 0, 120)
+        number(raw['aspect'], 'Tỷ lệ camera', 0, 120)
         if raw['perspective']
           raise ArgumentError, 'Thiếu hướng FOV.' unless [true, false].include?(raw['fov_vertical'])
-          fov = number(raw['fov'], 'FOV', 1, 120)
-          # Aspect=0 uses the receiving viewport. Do not silently convert a
-          # horizontal FOV without a known source aspect.
-          if result.fov_is_height? != raw['fov_vertical']
-            aspect = result.aspect_ratio
-            raise ArgumentError, 'Lưu scene với khung tỷ lệ trước khi chuyển FOV ngang.' unless aspect > 0
-            tangent = Math.tan(fov * Math::PI / 360)
-            tangent = raw['fov_vertical'] ? tangent * aspect : tangent / aspect
-            fov = Math.atan(tangent) * 360 / Math::PI
-          end
-          result.fov = number(fov, 'FOV quy đổi', 1, 120)
+          Scenes.valid_fov(raw['fov'])
         else
-          result.height = number(raw['height'], 'Chiều cao camera', 1e-9, 1e12)
+          number(raw['height'], 'Chiều cao camera', 1e-9, 1e12)
+        end
+        raw
+      end
+
+      def self.camera(raw)
+        validate_camera(raw)
+        result = Sketchup::Camera.new(Geom::Point3d.new(raw['eye']), Geom::Point3d.new(raw['target']), Geom::Vector3d.new(raw['up']), raw['perspective'])
+        result.aspect_ratio = raw['aspect']
+        if raw['perspective']
+          fov = Scenes.convert_fov(raw['fov'], raw['fov_vertical'], result.fov_is_height?, result.aspect_ratio)
+          Scenes.set_camera_fov(result, fov)
+        else
+          result.height = raw['height']
         end
         result
       end
@@ -88,11 +90,16 @@ module VGD
           seen[id] = true
           name = text(entry['name'], 'Tên scene', 180)
           raise ArgumentError, 'Tên scene không được trống.' if name.strip.empty?
-          camera(entry['camera']) # Preflight every camera before editing the model.
+          # Export/reading validates data without constructing a native camera.
+          # Import still constructs EVERY selected camera before any writes.
+          validate_camera(entry['camera'])
           frame = entry['frame']
           raise ArgumentError, 'Khung scene không hợp lệ.' unless frame.is_a?(Hash) && SceneFrame::KEYS.all? { |k| frame.key?(k) }
           SceneFrame::KEYS.each { |k| number(frame[k], "Khung #{k}") }
           Scenes.options(frame)
+        rescue StandardError => error
+          label = entry.is_a?(Hash) && entry['name'].is_a?(String) ? entry['name'] : 'Scene'
+          raise ArgumentError, "#{label}: #{error.message}"
         end
         text(raw.fetch('title', ''), 'Tên model', 300)
         raw
@@ -203,18 +210,23 @@ module VGD
         destination.set(source.eye, source.target, source.up)
         destination.perspective = source.perspective?
         destination.aspect_ratio = source.aspect_ratio
-        if source.perspective?
-          destination.fov = source.fov
-        else
-          destination.height = source.height
-        end
+        Scenes.copy_camera_lens(destination, source)
       end
 
-      def self.restore_camera(destination, data)
+      def self.restore_camera(destination, data, view = nil)
         destination.set(Geom::Point3d.new(data['eye']), Geom::Point3d.new(data['target']), Geom::Vector3d.new(data['up']))
         destination.perspective = data['perspective']
         destination.aspect_ratio = data['aspect']
-        data['perspective'] ? destination.fov = data['fov'] : destination.height = data['height']
+        if data['perspective']
+          aspect = data['aspect']
+          if aspect <= 0 && data['fov_vertical'] != destination.fov_is_height?
+            view ||= Sketchup.active_model.active_view
+            aspect = view.vpwidth.to_f / view.vpheight
+          end
+          Scenes.set_camera_fov(destination, Scenes.convert_fov(data['fov'], data['fov_vertical'], destination.fov_is_height?, aspect))
+        else
+          destination.height = data['height']
+        end
       end
 
       def self.restore_attribute(page, key, value)
@@ -238,6 +250,8 @@ module VGD
             raise ArgumentError, "#{target.name}: camera đích đang là hai điểm / Match Photo. Chọn Tạo mới."
           end
           [entry, target, camera(entry['camera'])]
+        rescue StandardError => error
+          raise ArgumentError, "#{entry['name']}: #{error.message}"
         end
         targets = plans.select { |_e, p, _c| p && mode == 'update' }.map { |_e, p, _c| p }
         raise ArgumentError, 'Nhiều scene nguồn cùng khớp một scene đích. Chọn Tạo mới hoặc nhập riêng.' unless targets.uniq.length == targets.length
@@ -283,7 +297,7 @@ module VGD
               failures << rollback_error.message
             end
             backups.each do |page, saved_camera, use_camera, attributes|
-              restore_camera(page.camera, saved_camera)
+              restore_camera(page.camera, saved_camera, model.active_view)
               page.use_camera = use_camera
               attributes.each { |key, value| restore_attribute(page, key, value) }
             rescue StandardError => rollback_error
